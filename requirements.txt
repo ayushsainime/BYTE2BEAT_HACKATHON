@@ -1,0 +1,8 @@
+pandas 
+matplotlib
+seaborn 
+# all the libraries  required for a deep learning project
+torch
+torchvision
+numpy
+scikit-learn
