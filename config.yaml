@@ -1,0 +1,24 @@
+seed: 42
+
+data:
+  data_dir: "dataset_split"
+  train_dir: "train"
+  test_dir: "test"
+  image_size: 224
+  num_classes: 4
+
+model:
+  name: "efficientnet_b3"   # simple + strong transfer learning model
+  pretrained: true
+
+train:
+  batch_size: 16
+  epochs: 20
+  lr: 0.0003
+  val_split: 0.2
+  num_workers: 2
+  patience: 4
+
+logging:
+  save_dir: "outputs"
+  model_dir: "models"

@@ -1,9 +1,10 @@
-# all the libraries  required for a deep learning project
-ipykernel
-pandas 
-matplotlib
-seaborn 
+numpy
 torch
 torchvision
-numpy
 scikit-learn
+matplotlib
+seaborn
+PyYAML
+Pillow
+fastapi
+uvicorn
