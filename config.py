@@ -1,6 +1,5 @@
 import os
-
-import yaml
+import yaml 
 
 
 def load_config(path="config.yaml"):
