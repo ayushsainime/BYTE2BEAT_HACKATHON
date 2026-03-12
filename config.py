@@ -11,6 +11,9 @@ def load_config(path="config.yaml"):
         cfg = {}
     return cfg
 
+# kk = load_config() 
+# print( kk ) 
+
 
 def ensure_folders(cfg):
     outputs_dir = cfg.get("logging", {}).get("save_dir", "outputs")
@@ -21,8 +24,9 @@ def ensure_folders(cfg):
 
 
 def get_data_paths(cfg):
-    data_cfg = cfg.get("data", {})
+    data_cfg = cfg.get( "data", {} )  
     data_dir = data_cfg.get("data_dir", "dataset_split")
     train_dir = os.path.join(data_dir, data_cfg.get("train_dir", "train"))
     test_dir = os.path.join(data_dir, data_cfg.get("test_dir", "test"))
     return data_dir, train_dir, test_dir
+

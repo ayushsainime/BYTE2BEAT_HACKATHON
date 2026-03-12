@@ -15,10 +15,11 @@ from torchvision.datasets import ImageFolder
 from torchvision.models import EfficientNet_B3_Weights, efficientnet_b3
 
 from config import ensure_folders, get_data_paths, load_config
+from sklearn.model_selection import train_test_split
 
 
 def parse_args():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser() 
     parser.add_argument("--config", type=str, default="config.yaml")
     return parser.parse_args()
 
