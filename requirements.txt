@@ -8,3 +8,5 @@ Pillow
 fastapi
 uvicorn
 pyyaml
+albumentations
+opencv-python

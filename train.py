@@ -4,22 +4,77 @@ import json
 import os
 import random
 
+import albumentations as A
+import cv2
 import numpy as np
 import torch
 import torch.nn as nn
+from albumentations.pytorch import ToTensorV2
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader, Subset
-from torchvision import transforms
-from torchvision.datasets import ImageFolder
+from torch.utils.data import DataLoader, Dataset
 from torchvision.models import EfficientNet_B3_Weights, efficientnet_b3
 
 from config import ensure_folders, get_data_paths, load_config
-from sklearn.model_selection import train_test_split
+
+
+class CustomImageDataset(Dataset):
+    def __init__(self, root_dir, transform=None, class_to_idx=None, samples=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        self.extensions = {".jpg", ".jpeg", ".png", ".bmp"}
+
+        if class_to_idx is None:
+            class_names = []
+            for name in sorted(os.listdir(root_dir)):
+                full = os.path.join(root_dir, name)
+                if os.path.isdir(full):
+                    class_names.append(name)
+            self.class_to_idx = {name: idx for idx, name in enumerate(class_names)}
+        else:
+            self.class_to_idx = dict(class_to_idx)
+
+        self.classes = [None] * len(self.class_to_idx)
+        for name, idx in self.class_to_idx.items():
+            self.classes[idx] = name
+
+        if samples is None:
+            collected = []
+            for class_name, class_idx in self.class_to_idx.items():
+                class_dir = os.path.join(root_dir, class_name)
+                if not os.path.isdir(class_dir):
+                    continue
+                for file_name in sorted(os.listdir(class_dir)):
+                    full_path = os.path.join(class_dir, file_name)
+                    if not os.path.isfile(full_path):
+                        continue
+                    ext = os.path.splitext(file_name)[1].lower()
+                    if ext in self.extensions:
+                        collected.append((full_path, class_idx))
+            self.samples = collected
+        else:
+            self.samples = list(samples)
+
+        self.targets = [label for _, label in self.samples]
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        image_path, label = self.samples[idx]
+        image = cv2.imread(image_path, cv2.IMREAD_COLOR)
+        if image is None:
+            raise RuntimeError(f"Failed to read image: {image_path}")
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        if self.transform is not None:
+            image = self.transform(image=image)["image"]
+
+        return image, label
 
 
 def parse_args():
-    parser = argparse.ArgumentParser() 
+    parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="config.yaml")
     return parser.parse_args()
 
@@ -36,20 +91,42 @@ def get_device():
 
 
 def get_transforms(image_size):
-    train_tf = transforms.Compose(
+    try:
+        random_resized_crop = A.RandomResizedCrop(
+            height=image_size,
+            width=image_size,
+            scale=(0.9, 1.0),
+            p=1.0,
+        )
+    except TypeError:
+        random_resized_crop = A.RandomResizedCrop(
+            size=(image_size, image_size),
+            scale=(0.9, 1.0),
+            p=1.0,
+        )
+
+    try:
+        gauss_noise = A.GaussNoise(var_limit=(5.0, 20.0), p=0.2)
+    except TypeError:
+        gauss_noise = A.GaussNoise(std_range=(5.0 / 255.0, 20.0 / 255.0), p=0.2)
+
+    train_tf = A.Compose(
         [
-            transforms.RandomResizedCrop(image_size, scale=(0.8, 1.0)),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(10),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            random_resized_crop,
+            A.HorizontalFlip(p=0.5),
+            A.Rotate(limit=10, p=0.5),
+            A.RandomBrightnessContrast(p=0.3),
+            gauss_noise,
+            A.CLAHE(clip_limit=2.0, p=0.2),
+            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            ToTensorV2(),
         ]
     )
-    val_tf = transforms.Compose(
+    val_tf = A.Compose(
         [
-            transforms.Resize((image_size, image_size)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            A.Resize(height=image_size, width=image_size),
+            A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+            ToTensorV2(),
         ]
     )
     return train_tf, val_tf
@@ -128,10 +205,9 @@ def main():
 
     train_tf, val_tf = get_transforms(image_size)
 
-    dataset_train_tf = ImageFolder(train_dir, transform=train_tf)
-    dataset_val_tf = ImageFolder(train_dir, transform=val_tf)
-    labels = np.array(dataset_train_tf.targets)
-    num_classes = len(dataset_train_tf.classes)
+    base_dataset = CustomImageDataset(train_dir, transform=None)
+    labels = np.array(base_dataset.targets)
+    num_classes = len(base_dataset.classes)
 
     all_indices = np.arange(len(labels))
     train_idx, val_idx = train_test_split(
@@ -141,11 +217,24 @@ def main():
         stratify=labels,
     )
 
-    train_subset = Subset(dataset_train_tf, train_idx.tolist())
-    val_subset = Subset(dataset_val_tf, val_idx.tolist())
+    train_samples = [base_dataset.samples[i] for i in train_idx.tolist()]
+    val_samples = [base_dataset.samples[i] for i in val_idx.tolist()]
 
-    train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    val_loader = DataLoader(val_subset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    train_dataset = CustomImageDataset(
+        train_dir,
+        transform=train_tf,
+        class_to_idx=base_dataset.class_to_idx,
+        samples=train_samples,
+    )
+    val_dataset = CustomImageDataset(
+        train_dir,
+        transform=val_tf,
+        class_to_idx=base_dataset.class_to_idx,
+        samples=val_samples,
+    )
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     model = build_model(num_classes=num_classes, pretrained=bool(cfg["model"]["pretrained"]))
     model.to(device)
@@ -195,8 +284,8 @@ def main():
 
     checkpoint = {
         "state_dict": best_state,
-        "class_names": dataset_train_tf.classes,
-        "class_to_idx": dataset_train_tf.class_to_idx,
+        "class_names": base_dataset.classes,
+        "class_to_idx": base_dataset.class_to_idx,
         "image_size": image_size,
         "model_name": cfg["model"]["name"],
     }
