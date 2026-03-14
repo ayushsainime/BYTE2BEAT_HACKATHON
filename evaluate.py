@@ -7,7 +7,7 @@ import numpy as np
 import seaborn as sns
 import torch
 import torch.nn.functional as F
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, roc_auc_score
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
@@ -155,6 +155,7 @@ def main():
 
     y_true = []
     y_pred = []
+    y_score = []
     sample_rows = []
 
     with torch.no_grad():
@@ -186,6 +187,7 @@ def main():
             for i in range(len(targets_np)):
                 y_true.append(int(targets_np[i]))
                 y_pred.append(int(preds[i]))
+                y_score.append(probs_np[i].tolist())
                 if len(sample_rows) < 10:
                     sample_rows.append(
                         {
@@ -199,6 +201,15 @@ def main():
 
     acc = accuracy_score(y_true, y_pred)
     macro_f1 = f1_score(y_true, y_pred, average="macro", zero_division=0)
+    roc_auc_ovr_macro = None
+    roc_auc_ovr_weighted = None
+    try:
+        y_score_np = np.array(y_score, dtype=np.float32)
+        roc_auc_ovr_macro = float(roc_auc_score(y_true, y_score_np, multi_class="ovr", average="macro"))
+        roc_auc_ovr_weighted = float(roc_auc_score(y_true, y_score_np, multi_class="ovr", average="weighted"))
+    except ValueError:
+        pass
+
     report = classification_report(y_true, y_pred, target_names=dataset.classes, zero_division=0, output_dict=True)
     cm = confusion_matrix(y_true, y_pred, labels=list(range(len(dataset.classes))))
 
@@ -207,6 +218,8 @@ def main():
     metrics = {
         "accuracy": float(acc),
         "macro_f1": float(macro_f1),
+        "roc_auc_ovr_macro": roc_auc_ovr_macro,
+        "roc_auc_ovr_weighted": roc_auc_ovr_weighted,
         "classification_report": report,
         "checkpoints": checkpoint_paths,
         "models": [item["model_name"] for item in ensemble],
@@ -220,7 +233,18 @@ def main():
         for row in sample_rows:
             f.write(f"{row['sample_index']},{row['true_class']},{row['pred_class']},{row['confidence']:.6f}\n")
 
-    print(json.dumps({"accuracy": float(acc), "macro_f1": float(macro_f1), "models": metrics["models"]}, indent=2))
+    print(
+        json.dumps(
+            {
+                "accuracy": float(acc),
+                "macro_f1": float(macro_f1),
+                "roc_auc_ovr_macro": roc_auc_ovr_macro,
+                "roc_auc_ovr_weighted": roc_auc_ovr_weighted,
+                "models": metrics["models"],
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":
