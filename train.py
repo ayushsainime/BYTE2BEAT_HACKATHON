@@ -1,4 +1,4 @@
-import argparse
+﻿import argparse
 import csv
 import json
 import os
@@ -38,22 +38,7 @@ class CustomImageDataset(Dataset):
         for name, idx in self.class_to_idx.items():
             self.classes[idx] = name
 
-        if samples is None:
-            collected = []
-            for class_name, class_idx in self.class_to_idx.items():
-                class_dir = os.path.join(root_dir, class_name)
-                if not os.path.isdir(class_dir):
-                    continue
-                for file_name in sorted(os.listdir(class_dir)):
-                    full_path = os.path.join(class_dir, file_name)
-                    if not os.path.isfile(full_path):
-                        continue
-                    ext = os.path.splitext(file_name)[1].lower()
-                    if ext in self.extensions:
-                        collected.append((full_path, class_idx))
-            self.samples = collected
-        else:
-            self.samples = list(samples)
+        self.samples = list(samples)
 
         self.targets = [label for _, label in self.samples]
 
@@ -113,7 +98,6 @@ def get_transforms(image_size):
     train_tf = A.Compose(
         [
             random_resized_crop,
-            A.HorizontalFlip(p=0.5),
             A.Rotate(limit=10, p=0.5),
             A.RandomBrightnessContrast(p=0.3),
             gauss_noise,
@@ -129,14 +113,44 @@ def get_transforms(image_size):
             ToTensorV2(),
         ]
     )
+
     return train_tf, val_tf
 
 
 def build_model(num_classes, pretrained=True):
-    weights = EfficientNet_B3_Weights.IMAGENET1K_V1 if pretrained else None
+    weights = EfficientNet_B3_Weights.DEFAULT if pretrained else None
     model = efficientnet_b3(weights=weights)
-    model.classifier[1] = nn.Linear(model.classifier[1].in_features, num_classes)
+    ff = model.classifier[1].in_features
+    model.classifier[1] = nn.Linear(ff, num_classes)
     return model
+
+
+def set_trainable_layers(model, freeze_backbone):
+    if freeze_backbone:
+        for param in model.parameters():
+            param.requires_grad = False
+        for param in model.classifier.parameters():
+            param.requires_grad = True
+    else:
+        for param in model.parameters():
+            param.requires_grad = True
+
+
+def build_optimizer(model, head_lr, backbone_lr=None):
+    if backbone_lr is None:
+        trainable_params = [p for p in model.parameters() if p.requires_grad]
+        return torch.optim.AdamW(trainable_params, lr=head_lr)
+
+    backbone_params = [p for p in model.features.parameters() if p.requires_grad]
+    head_params = [p for p in model.classifier.parameters() if p.requires_grad]
+    param_groups = []
+    if backbone_params:
+        param_groups.append({"params": backbone_params, "lr": backbone_lr})
+    if head_params:
+        param_groups.append({"params": head_params, "lr": head_lr})
+    if not param_groups:
+        param_groups = [{"params": model.parameters(), "lr": head_lr}]
+    return torch.optim.AdamW(param_groups)
 
 
 def compute_class_weights(labels, num_classes, device):
@@ -199,6 +213,8 @@ def main():
     batch_size = int(cfg["train"]["batch_size"])
     epochs = int(cfg["train"]["epochs"])
     lr = float(cfg["train"]["lr"])
+    freeze_backbone_epochs = int(cfg["train"].get("freeze_backbone_epochs", 5))
+    backbone_lr = float(cfg["train"].get("backbone_lr", lr * 0.2))
     val_split = float(cfg["train"]["val_split"])
     num_workers = int(cfg["train"]["num_workers"])
     patience = int(cfg["train"]["patience"])
@@ -242,7 +258,16 @@ def main():
     train_labels = labels[train_idx].tolist()
     class_weights = compute_class_weights(train_labels, num_classes, device)
     criterion = nn.CrossEntropyLoss(weight=class_weights)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+
+    freeze_backbone_epochs = max(0, min(freeze_backbone_epochs, epochs))
+    if freeze_backbone_epochs > 0:
+        set_trainable_layers(model, freeze_backbone=True)
+        optimizer = build_optimizer(model, head_lr=lr, backbone_lr=None)
+        print(f"Phase 1: backbone frozen for first {freeze_backbone_epochs} epochs | head_lr={lr}")
+    else:
+        set_trainable_layers(model, freeze_backbone=False)
+        optimizer = build_optimizer(model, head_lr=lr, backbone_lr=backbone_lr)
+        print(f"Phase 1 skipped: full fine-tuning from epoch 1 | head_lr={lr}, backbone_lr={backbone_lr}")
 
     best_f1 = -1.0
     best_state = None
@@ -250,11 +275,19 @@ def main():
     history_rows = []
 
     for epoch in range(1, epochs + 1):
+        if freeze_backbone_epochs > 0 and epoch == (freeze_backbone_epochs + 1):
+            set_trainable_layers(model, freeze_backbone=False)
+            optimizer = build_optimizer(model, head_lr=lr, backbone_lr=backbone_lr)
+            bad_epochs = 0
+            print(f"Phase 2: backbone unfrozen from epoch {epoch} | head_lr={lr}, backbone_lr={backbone_lr}")
+
         train_loss, train_f1 = run_one_epoch(model, train_loader, criterion, optimizer, device)
         val_loss, val_f1 = run_one_epoch(model, val_loader, criterion, None, device)
+        phase = "head_only" if epoch <= freeze_backbone_epochs else "full_finetune"
 
         print(
             f"Epoch {epoch}/{epochs} | "
+            f"phase={phase} | "
             f"train_loss={train_loss:.4f} train_f1={train_f1:.4f} | "
             f"val_loss={val_loss:.4f} val_f1={val_f1:.4f}"
         )
@@ -266,6 +299,7 @@ def main():
                 "train_macro_f1": train_f1,
                 "val_loss": val_loss,
                 "val_macro_f1": val_f1,
+                "phase": phase,
             }
         )
 
@@ -275,7 +309,8 @@ def main():
             bad_epochs = 0
         else:
             bad_epochs += 1
-            if bad_epochs >= patience:
+            early_stopping_active = epoch > freeze_backbone_epochs
+            if early_stopping_active and bad_epochs >= patience:
                 print("Early stopping triggered.")
                 break
 
@@ -294,7 +329,10 @@ def main():
 
     history_path = os.path.join(outputs_dir, "training_history.csv")
     with open(history_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["epoch", "train_loss", "train_macro_f1", "val_loss", "val_macro_f1"])
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["epoch", "phase", "train_loss", "train_macro_f1", "val_loss", "val_macro_f1"],
+        )
         writer.writeheader()
         writer.writerows(history_rows)
 
@@ -303,6 +341,9 @@ def main():
         "best_model_path": best_model_path,
         "history_path": history_path,
         "device": str(device),
+        "freeze_backbone_epochs": freeze_backbone_epochs,
+        "head_lr": lr,
+        "backbone_lr": backbone_lr,
     }
     with open(os.path.join(outputs_dir, "train_summary.json"), "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
