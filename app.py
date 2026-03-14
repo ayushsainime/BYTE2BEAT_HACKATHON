@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from PIL import Image
 from torchvision import transforms
-from torchvision.models import densenet121
+from torchvision.models import convnext_tiny, densenet121, efficientnet_b3, resnet18
 
 from config import get_runtime_requirements, load_config, validate_runtime_versions
 
@@ -19,9 +19,21 @@ IMAGE_SIZE = 224
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def build_model(num_classes):
-    model = densenet121(weights=None)
-    model.classifier = torch.nn.Linear(model.classifier.in_features, num_classes)
+def build_model(model_name, num_classes):
+    if model_name == "densenet121":
+        model = densenet121(weights=None)
+        model.classifier = torch.nn.Linear(model.classifier.in_features, num_classes)
+    elif model_name == "efficientnet_b3":
+        model = efficientnet_b3(weights=None)
+        model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "convnext_tiny":
+        model = convnext_tiny(weights=None)
+        model.classifier[2] = torch.nn.Linear(model.classifier[2].in_features, num_classes)
+    elif model_name == "resnet18":
+        model = resnet18(weights=None)
+        model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+    else:
+        raise RuntimeError(f"Unsupported model '{model_name}' in checkpoint")
     return model
 
 
@@ -52,8 +64,9 @@ def startup():
     checkpoint = torch.load(checkpoint_path, map_location=DEVICE)
     CLASS_NAMES = checkpoint["class_names"]
     IMAGE_SIZE = int(checkpoint.get("image_size", 224))
+    model_name = checkpoint.get("model_name", "densenet121")
 
-    MODEL = build_model(len(CLASS_NAMES))
+    MODEL = build_model(model_name, len(CLASS_NAMES))
     MODEL.load_state_dict(checkpoint["state_dict"])
     MODEL.to(DEVICE)
     MODEL.eval()

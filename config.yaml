@@ -13,13 +13,28 @@ model:
 
 train:
   batch_size: 16
-  epochs: 20
+  epochs: 40
+  cv_folds: 5
+  cv_epochs: 20
   lr: 0.0003
+  warmup_epochs: 2
+  weight_decay: 0.0001
+  use_weighted_sampler: true
   freeze_backbone_epochs: 5
   backbone_lr: 0.00006
   val_split: 0.2
   num_workers: 2
-  patience: 4
+  patience: 6
+
+ensemble:
+  models:
+    - "densenet121"
+    - "efficientnet_b3"
+    - "convnext_tiny"
+    - "resnet18"
+
+eval:
+  tta: true
 
 logging:
   save_dir: "outputs"

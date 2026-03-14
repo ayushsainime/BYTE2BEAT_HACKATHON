@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
-from torchvision.models import densenet121
+from torchvision.models import convnext_tiny, densenet121, efficientnet_b3, resnet18
 
 from config import get_runtime_requirements, load_config, validate_runtime_versions
 
@@ -20,9 +20,21 @@ def parse_args():
     return parser.parse_args()
 
 
-def build_model(num_classes):
-    model = densenet121(weights=None)
-    model.classifier = torch.nn.Linear(model.classifier.in_features, num_classes)
+def build_model(model_name, num_classes):
+    if model_name == "densenet121":
+        model = densenet121(weights=None)
+        model.classifier = torch.nn.Linear(model.classifier.in_features, num_classes)
+    elif model_name == "efficientnet_b3":
+        model = efficientnet_b3(weights=None)
+        model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, num_classes)
+    elif model_name == "convnext_tiny":
+        model = convnext_tiny(weights=None)
+        model.classifier[2] = torch.nn.Linear(model.classifier[2].in_features, num_classes)
+    elif model_name == "resnet18":
+        model = resnet18(weights=None)
+        model.fc = torch.nn.Linear(model.fc.in_features, num_classes)
+    else:
+        raise ValueError(f"Unsupported model '{model_name}' in checkpoint")
     return model
 
 
@@ -32,7 +44,8 @@ def load_model(checkpoint_path, device):
     checkpoint = torch.load(checkpoint_path, map_location=device)
     class_names = checkpoint["class_names"]
     image_size = int(checkpoint.get("image_size", 224))
-    model = build_model(len(class_names))
+    model_name = checkpoint.get("model_name", "densenet121")
+    model = build_model(model_name, len(class_names))
     model.load_state_dict(checkpoint["state_dict"])
     model.to(device)
     model.eval()
