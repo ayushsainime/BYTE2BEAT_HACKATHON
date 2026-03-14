@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
-from torchvision.models import EfficientNet_B3_Weights, efficientnet_b3
+from torchvision.models import efficientnet_b3
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -18,7 +18,7 @@ def parse_args():
 
 
 def build_model(num_classes):
-    model = efficientnet_b3(weights=EfficientNet_B3_Weights.IMAGENET1K_V1)
+    model = efficientnet_b3(weights=None)
     model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, num_classes)
     return model
 

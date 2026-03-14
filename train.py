@@ -25,12 +25,7 @@ class CustomImageDataset(Dataset):
         self.extensions = {".jpg", ".jpeg", ".png", ".bmp"}
 
         if class_to_idx is None:
-            class_names = []
-            for name in sorted(os.listdir(root_dir)):
-                full = os.path.join(root_dir, name)
-                if os.path.isdir(full):
-                    class_names.append(name)
-            self.class_to_idx = {name: idx for idx, name in enumerate(class_names)}
+            self.class_to_idx = self._build_class_to_idx(root_dir)
         else:
             self.class_to_idx = dict(class_to_idx)
 
@@ -38,7 +33,10 @@ class CustomImageDataset(Dataset):
         for name, idx in self.class_to_idx.items():
             self.classes[idx] = name
 
-        self.samples = list(samples)
+        if samples is None:
+            self.samples = self._collect_samples(root_dir, self.class_to_idx, self.extensions)
+        else:
+            self.samples = list(samples)
 
         self.targets = [label for _, label in self.samples]
 
@@ -56,6 +54,31 @@ class CustomImageDataset(Dataset):
             image = self.transform(image=image)["image"]
 
         return image, label
+
+    @staticmethod
+    def _build_class_to_idx(root_dir):
+        class_names = []
+        for name in sorted(os.listdir(root_dir)):
+            full = os.path.join(root_dir, name)
+            if os.path.isdir(full):
+                class_names.append(name)
+        return {name: idx for idx, name in enumerate(class_names)}
+
+    @staticmethod
+    def _collect_samples(root_dir, class_to_idx, extensions):
+        collected = []
+        for class_name, class_idx in class_to_idx.items():
+            class_dir = os.path.join(root_dir, class_name)
+            if not os.path.isdir(class_dir):
+                continue
+            for file_name in sorted(os.listdir(class_dir)):
+                full_path = os.path.join(class_dir, file_name)
+                if not os.path.isfile(full_path):
+                    continue
+                ext = os.path.splitext(file_name)[1].lower()
+                if ext in extensions:
+                    collected.append((full_path, class_idx))
+        return collected
 
 
 def parse_args():
@@ -221,7 +244,14 @@ def main():
 
     train_tf, val_tf = get_transforms(image_size)
 
-    base_dataset = CustomImageDataset(train_dir, transform=None)
+    class_to_idx = CustomImageDataset._build_class_to_idx(train_dir)
+    all_samples = CustomImageDataset._collect_samples(train_dir, class_to_idx, {".jpg", ".jpeg", ".png", ".bmp"})
+    base_dataset = CustomImageDataset(
+        train_dir,
+        transform=None,
+        class_to_idx=class_to_idx,
+        samples=all_samples,
+    )
     labels = np.array(base_dataset.targets)
     num_classes = len(base_dataset.classes)
 
