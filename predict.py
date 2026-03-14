@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 from torchvision import transforms
-from torchvision.models import efficientnet_b3
+from torchvision.models import densenet121
 
 from config import get_runtime_requirements, load_config, validate_runtime_versions
 
@@ -21,8 +21,8 @@ def parse_args():
 
 
 def build_model(num_classes):
-    model = efficientnet_b3(weights=None)
-    model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, num_classes)
+    model = densenet121(weights=None)
+    model.classifier = torch.nn.Linear(model.classifier.in_features, num_classes)
     return model
 
 

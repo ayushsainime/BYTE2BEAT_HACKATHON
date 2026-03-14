@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
-from torchvision.models import efficientnet_b3
+from torchvision.models import densenet121
 
 from config import (
     ensure_folders,
@@ -32,8 +32,8 @@ def parse_args():
 
 
 def build_model(num_classes):
-    model = efficientnet_b3(weights=None)
-    model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, num_classes)
+    model = densenet121(weights=None)
+    model.classifier = torch.nn.Linear(model.classifier.in_features, num_classes)
     return model
 
 

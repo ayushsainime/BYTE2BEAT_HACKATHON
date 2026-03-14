@@ -4,11 +4,11 @@ data:
   data_dir: "dataset_split"
   train_dir: "train"
   test_dir: "test"
-  image_size: 224
+  image_size: 320
   num_classes: 4
 
 model:
-  name: "efficientnet_b3"   # simple + strong transfer learning model
+  name: "densenet121"
   pretrained: true
 
 train:

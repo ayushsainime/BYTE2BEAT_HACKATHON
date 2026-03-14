@@ -13,7 +13,7 @@ from albumentations.pytorch import ToTensorV2
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
-from torchvision.models import EfficientNet_B3_Weights, efficientnet_b3
+from torchvision.models import DenseNet121_Weights, densenet121
 
 from config import (
     ensure_folders,
@@ -147,10 +147,10 @@ def get_transforms(image_size):
 
 
 def build_model(num_classes, pretrained=True):
-    weights = EfficientNet_B3_Weights.DEFAULT if pretrained else None
-    model = efficientnet_b3(weights=weights)
-    ff = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(ff, num_classes)
+    weights = DenseNet121_Weights.DEFAULT if pretrained else None
+    model = densenet121(weights=weights)
+    ff = model.classifier.in_features
+    model.classifier = nn.Linear(ff, num_classes)
     return model
 
 
