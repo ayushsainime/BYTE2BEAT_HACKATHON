@@ -8,8 +8,11 @@ from PIL import Image
 from torchvision import transforms
 from torchvision.models import efficientnet_b3
 
+from config import get_runtime_requirements, load_config, validate_runtime_versions
+
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="config.yaml")
     parser.add_argument("--checkpoint", type=str, default="models/best_model.pth")
     parser.add_argument("--image", type=str, default=None)
     parser.add_argument("--image_dir", type=str, default=None)
@@ -70,6 +73,8 @@ def predict_image(image_path, model, class_names, image_size, device, topk=3):
 
 def main():
     args = parse_args()
+    cfg = load_config(args.config)
+    validate_runtime_versions(get_runtime_requirements(cfg))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model, class_names, image_size = load_model(args.checkpoint, device)
 

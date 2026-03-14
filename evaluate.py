@@ -13,7 +13,13 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torchvision.models import efficientnet_b3
 
-from config import ensure_folders, get_data_paths, load_config
+from config import (
+    ensure_folders,
+    get_data_paths,
+    get_runtime_requirements,
+    load_config,
+    validate_runtime_versions,
+)
 
 
 def parse_args():
@@ -45,6 +51,7 @@ def save_confusion_matrix(cm, class_names, out_path):
 def main():
     args = parse_args()
     cfg = load_config(args.config)
+    validate_runtime_versions(get_runtime_requirements(cfg))
     outputs_dir, _models_dir = ensure_folders(cfg)
     _data_dir, _train_dir, test_dir = get_data_paths(cfg)
 

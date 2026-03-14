@@ -8,6 +8,8 @@ from PIL import Image
 from torchvision import transforms
 from torchvision.models import efficientnet_b3
 
+from config import get_runtime_requirements, load_config, validate_runtime_versions
+
 
 app = FastAPI(title="Heart Disease Prediction API")
 
@@ -36,6 +38,12 @@ def get_transform(image_size):
 @app.on_event("startup")
 def startup():
     global MODEL, CLASS_NAMES, IMAGE_SIZE
+
+    try:
+        cfg = load_config("config.yaml")
+    except FileNotFoundError:
+        cfg = {}
+    validate_runtime_versions(get_runtime_requirements(cfg))
 
     checkpoint_path = os.getenv("CHECKPOINT_PATH", "models/best_model.pth")
     if not os.path.exists(checkpoint_path):
