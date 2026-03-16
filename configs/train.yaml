@@ -1,0 +1,30 @@
+seed: 42
+device: auto
+epochs: 15
+mixed_precision: true
+grad_clip_norm: 1.0
+
+experiment:
+  name: baseline_efficientnet_b0
+  output_root: experiments
+  log_every_n_steps: 20
+
+loss:
+  use_pos_weight: true
+
+optimizer:
+  name: adamw
+  lr: 0.0003
+  weight_decay: 0.0001
+
+scheduler:
+  name: cosine
+  min_lr: 1.0e-6
+  onecycle_pct_start: 0.3
+
+checkpoint:
+  monitor: val_f1
+  mode: max
+  early_stopping_patience: 5
+  save_best_only: true
+

@@ -1,0 +1,47 @@
+labels:
+  - N
+  - D
+  - G
+  - C
+  - A
+  - H
+  - M
+  - O
+
+paths:
+  data_root: .
+  csv_path: full_df.csv
+  images_dir: preprocessed_images
+  processed_dir: data/processed
+  splits_dir: data/splits
+  metadata_stats_path: data/processed/metadata_stats.json
+  thresholds_path: data/processed/thresholds.json
+
+split:
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_state: 42
+  require_both_eyes: true
+  stratify: true
+  stratify_min_count: 2
+
+image:
+  size: 224
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+loader:
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  train_batch_size: 16
+  val_batch_size: 16
+  test_batch_size: 16
+
+metadata:
+  age_min: 0.0
+  age_max: 120.0
+  sex_mapping:
+    Female: 0.0
+    Male: 1.0

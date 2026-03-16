@@ -1,0 +1,11 @@
+device: auto
+split: test
+batch_size: 16
+global_threshold: 0.5
+tune_thresholds: true
+save_predictions: true
+predictions_file: data/processed/eval_predictions.csv
+thresholds_file: data/processed/thresholds.json
+
+report_file: data/processed/eval_report.json
+

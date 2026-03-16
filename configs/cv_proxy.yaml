@@ -1,0 +1,21 @@
+weights:
+  hypertension_proxy:
+    H: 0.7
+    D: 0.2
+    A: 0.1
+  diabetes_proxy:
+    D: 0.8
+    H: 0.2
+  atherosclerotic_proxy:
+    A: 0.6
+    H: 0.2
+    D: 0.2
+
+overall_weights:
+  hypertension_proxy: 0.4
+  diabetes_proxy: 0.35
+  atherosclerotic_proxy: 0.25
+
+risk_bands:
+  low_max: 0.33
+  medium_max: 0.66

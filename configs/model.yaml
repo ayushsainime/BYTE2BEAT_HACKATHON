@@ -1,0 +1,14 @@
+backbone_name: efficientnet_b0
+pretrained: true
+num_labels: 8
+image_feature_dropout: 0.2
+metadata_hidden_dim: 32
+metadata_dropout: 0.1
+fusion_hidden_dims: [512, 256]
+fusion_dropout: 0.3
+
+freeze_policy:
+  enabled: true
+  freeze_encoder_epochs: 2
+  unfreeze_last_n_stages: 2
+  full_finetune_epoch: 6

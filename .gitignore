@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+experiments/
+data/processed/
+data/splits/
+PLAN.md
+preprocessed_images
