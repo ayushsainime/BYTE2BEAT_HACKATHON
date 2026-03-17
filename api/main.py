@@ -49,7 +49,6 @@ async def predict(
     left_image: UploadFile = File(...),
     right_image: UploadFile = File(...),
     age: float = Form(...),
-    sex: str = Form(...),
 ) -> PredictResponse:
     predictor: Predictor = app.state.predictor
 
@@ -60,7 +59,6 @@ async def predict(
             left_image=left_bytes,
             right_image=right_bytes,
             age=age,
-            sex=sex,
         )
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"Prediction failed: {exc}") from exc

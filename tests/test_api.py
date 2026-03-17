@@ -15,7 +15,7 @@ from tests.conftest import write_dummy_image
 
 def test_api_smoke(tmp_path: Path) -> None:
     model_config = ModelConfig(
-        backbone_name="efficientnet_b0",
+        backbone_name="efficientnet_b4",
         pretrained=False,
         num_labels=8,
         image_feature_dropout=0.2,
@@ -23,7 +23,7 @@ def test_api_smoke(tmp_path: Path) -> None:
         metadata_dropout=0.1,
         fusion_hidden_dims=[64, 32],
         fusion_dropout=0.2,
-        freeze_policy=FreezePolicyConfig(enabled=True, freeze_encoder_epochs=1, unfreeze_last_n_stages=2, full_finetune_epoch=3),
+        freeze_policy=FreezePolicyConfig(enabled=True, freeze_encoder_epochs=5, unfreeze_last_n_stages=2, full_finetune_epoch=5),
     )
     model = MultimodalRiskModel(model_config)
 
@@ -32,7 +32,7 @@ def test_api_smoke(tmp_path: Path) -> None:
 
     metadata_stats_path = tmp_path / "metadata_stats.json"
     thresholds_path = tmp_path / "thresholds.json"
-    save_json(metadata_stats_path, {"age_mean": 60.0, "age_std": 10.0, "sex_mapping": {"Female": 0.0, "Male": 1.0}})
+    save_json(metadata_stats_path, {"age_mean": 60.0, "age_std": 10.0})
     save_json(thresholds_path, {k: 0.5 for k in ["N", "D", "G", "C", "A", "H", "M", "O"]})
 
     data_cfg = tmp_path / "data.yaml"
@@ -58,6 +58,8 @@ split:
   test_ratio: 0.15
   random_state: 42
   require_both_eyes: true
+  stratify: true
+  stratify_min_count: 2
 image:
   size: 64
   mean: [0.5, 0.5, 0.5]
@@ -72,15 +74,12 @@ loader:
 metadata:
   age_min: 0.0
   age_max: 120.0
-  sex_mapping:
-    Female: 0.0
-    Male: 1.0
 """,
         encoding="utf-8",
     )
     model_cfg.write_text(
         """
-backbone_name: efficientnet_b0
+backbone_name: efficientnet_b4
 pretrained: false
 num_labels: 8
 image_feature_dropout: 0.2
@@ -90,9 +89,9 @@ fusion_hidden_dims: [64, 32]
 fusion_dropout: 0.2
 freeze_policy:
   enabled: true
-  freeze_encoder_epochs: 1
+  freeze_encoder_epochs: 5
   unfreeze_last_n_stages: 2
-  full_finetune_epoch: 3
+  full_finetune_epoch: 5
 """,
         encoding="utf-8",
     )
@@ -155,7 +154,7 @@ cv_proxy_config_path: {cv_cfg}
         with left.open("rb") as lfp, right.open("rb") as rfp:
             response = client.post(
                 "/predict",
-                data={"age": "64", "sex": "Female"},
+                data={"age": "64"},
                 files={
                     "left_image": ("left.jpg", lfp, "image/jpeg"),
                     "right_image": ("right.jpg", rfp, "image/jpeg"),

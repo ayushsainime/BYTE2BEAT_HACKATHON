@@ -1,4 +1,4 @@
-backbone_name: efficientnet_b0
+backbone_name: efficientnet_b4
 pretrained: true
 num_labels: 8
 image_feature_dropout: 0.2
@@ -9,6 +9,6 @@ fusion_dropout: 0.3
 
 freeze_policy:
   enabled: true
-  freeze_encoder_epochs: 2
+  freeze_encoder_epochs: 5
   unfreeze_last_n_stages: 2
-  full_finetune_epoch: 6
+  full_finetune_epoch: 5

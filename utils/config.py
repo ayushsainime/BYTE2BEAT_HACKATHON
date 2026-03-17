@@ -50,7 +50,6 @@ class LoaderConfig:
 class MetadataConfig:
     age_min: float
     age_max: float
-    sex_mapping: dict[str, float]
 
 
 @dataclass(frozen=True)
@@ -292,6 +291,7 @@ def load_cv_proxy_config(config_path: Path) -> CVProxyConfig:
         overall_weights=raw["overall_weights"],
         risk_bands=raw["risk_bands"],
     )
+
 
 
 

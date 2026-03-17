@@ -19,14 +19,12 @@ class FundusMultimodalDataset(Dataset[dict[str, Any]]):
         transform: Any,
         age_mean: float,
         age_std: float,
-        sex_mapping: dict[str, float],
         include_target: bool = True,
     ) -> None:
         self.dataframe = dataframe.reset_index(drop=True)
         self.transform = transform
         self.age_mean = age_mean
         self.age_std = age_std if age_std != 0 else 1.0
-        self.sex_mapping = sex_mapping
         self.include_target = include_target
 
     def __len__(self) -> int:
@@ -39,10 +37,9 @@ class FundusMultimodalDataset(Dataset[dict[str, Any]]):
             raise FileNotFoundError(f"Image not found or unreadable: {path}")
         return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    def _encode_metadata(self, age: float, sex: str) -> torch.Tensor:
+    def _encode_metadata(self, age: float) -> torch.Tensor:
         age_norm = (float(age) - self.age_mean) / self.age_std
-        sex_value = self.sex_mapping.get(str(sex), 0.0)
-        return torch.tensor([age_norm, sex_value], dtype=torch.float32)
+        return torch.tensor([age_norm], dtype=torch.float32)
 
     def __getitem__(self, index: int) -> dict[str, Any]:
         row = self.dataframe.iloc[index]
@@ -56,7 +53,7 @@ class FundusMultimodalDataset(Dataset[dict[str, Any]]):
         sample: dict[str, Any] = {
             "left_image": left_tensor,
             "right_image": right_tensor,
-            "metadata": self._encode_metadata(row["age"], row["sex"]),
+            "metadata": self._encode_metadata(row["age"]),
             "patient_id": str(row["patient_id"]),
         }
 

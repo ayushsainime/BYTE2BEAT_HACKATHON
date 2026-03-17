@@ -54,7 +54,6 @@ class Predictor:
         metadata_stats = load_json(inference_config.metadata_stats_path)
         self.age_mean = float(metadata_stats["age_mean"])
         self.age_std = float(metadata_stats["age_std"]) if float(metadata_stats["age_std"]) != 0 else 1.0
-        self.sex_mapping = {str(k): float(v) for k, v in metadata_stats["sex_mapping"].items()}
 
         self.cv_proxy_config = cv_proxy_config
 
@@ -83,10 +82,9 @@ class Predictor:
 
         raise TypeError(f"Unsupported image input type: {type(image_input)}")
 
-    def _encode_metadata(self, age: float, sex: str) -> torch.Tensor:
+    def _encode_metadata(self, age: float) -> torch.Tensor:
         age_norm = (float(age) - self.age_mean) / self.age_std
-        sex_value = float(self.sex_mapping.get(str(sex), 0.0))
-        return torch.tensor([[age_norm, sex_value]], dtype=torch.float32, device=self.device)
+        return torch.tensor([[age_norm]], dtype=torch.float32, device=self.device)
 
     def _cv_summary(self, probabilities: dict[str, float]) -> dict[str, float | str]:
         proxy_scores: dict[str, float] = {}
@@ -126,14 +124,13 @@ class Predictor:
         left_image: str | Path | bytes | np.ndarray,
         right_image: str | Path | bytes | np.ndarray,
         age: float,
-        sex: str,
     ) -> PredictionResult:
         left_np = self._read_image(left_image)
         right_np = self._read_image(right_image)
 
         left_tensor = self.transform(image=left_np)["image"].unsqueeze(0).to(self.device)
         right_tensor = self.transform(image=right_np)["image"].unsqueeze(0).to(self.device)
-        metadata_tensor = self._encode_metadata(age, sex)
+        metadata_tensor = self._encode_metadata(age)
 
         logits = self.model(left_tensor, right_tensor, metadata_tensor)
         probs = torch.sigmoid(logits).cpu().numpy()[0]
@@ -155,7 +152,6 @@ class Predictor:
                     left_image=record["left_image"],
                     right_image=record["right_image"],
                     age=float(record["age"]),
-                    sex=str(record["sex"]),
                 )
             )
         return outputs

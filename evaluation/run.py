@@ -94,6 +94,44 @@ def _summary(metrics: dict[str, Any]) -> str:
     )
 
 
+def _important_metric_block(metrics: dict[str, Any]) -> dict[str, float]:
+    return {
+        "accuracy": float(metrics["accuracy"]),
+        "precision": float(metrics["macro_precision"]),
+        "recall": float(metrics["macro_recall"]),
+        "f1": float(metrics["macro_f1"]),
+        "macro_auroc": float(metrics["macro_auroc"]),
+        "macro_pr_auc": float(metrics["macro_pr_auc"]),
+        "label_accuracy": float(metrics["label_accuracy"]),
+    }
+
+
+def _save_key_metrics_files(
+    report_file: Path,
+    split: str,
+    global_metrics: dict[str, Any],
+    tuned_metrics: dict[str, Any] | None = None,
+) -> None:
+    key_metrics_json = report_file.parent / "eval_key_metrics.json"
+    key_metrics_csv = report_file.parent / "eval_key_metrics.csv"
+
+    payload: dict[str, Any] = {
+        "split": split,
+        "global_threshold_metrics": _important_metric_block(global_metrics),
+    }
+    if tuned_metrics is not None:
+        payload["tuned_threshold_metrics"] = _important_metric_block(tuned_metrics)
+
+    save_json(key_metrics_json, payload)
+
+    rows: list[dict[str, Any]] = [{"metric_set": "global", **_important_metric_block(global_metrics)}]
+    if tuned_metrics is not None:
+        rows.append({"metric_set": "tuned", **_important_metric_block(tuned_metrics)})
+
+    pd.DataFrame(rows).to_csv(key_metrics_csv, index=False)
+    LOGGER.info("Saved key evaluation metrics to %s and %s", key_metrics_json, key_metrics_csv)
+
+
 def _ensure_json_safe(payload: dict[str, Any]) -> dict[str, Any]:
     def convert(value: Any) -> Any:
         if isinstance(value, dict):
@@ -166,6 +204,13 @@ def main() -> None:
     ensure_dir(eval_config.report_file.parent)
     save_json(eval_config.report_file, _ensure_json_safe(report_payload))
     LOGGER.info("Saved evaluation report to %s", eval_config.report_file)
+
+    _save_key_metrics_files(
+        report_file=eval_config.report_file,
+        split=eval_config.split,
+        global_metrics=global_metrics,
+        tuned_metrics=report_payload.get("tuned_metrics"),
+    )
 
 
 if __name__ == "__main__":

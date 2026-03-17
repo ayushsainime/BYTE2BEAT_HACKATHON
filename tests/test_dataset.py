@@ -33,7 +33,7 @@ def make_data_config(tmp_path: Path) -> DataConfig:
         split=SplitConfig(0.7, 0.15, 0.15, 42, True),
         image=ImageConfig(size=64, mean=[0.5, 0.5, 0.5], std=[0.2, 0.2, 0.2]),
         loader=LoaderConfig(0, False, False, 2, 2, 2),
-        metadata=MetadataConfig(0.0, 120.0, {"Female": 0.0, "Male": 1.0}),
+        metadata=MetadataConfig(0.0, 120.0),
     )
 
 
@@ -70,13 +70,12 @@ def test_dataset_output_contract(tmp_path: Path) -> None:
         transform=get_eval_transform(config),
         age_mean=60.0,
         age_std=10.0,
-        sex_mapping={"Female": 0.0, "Male": 1.0},
         include_target=True,
     )
 
     item = dataset[0]
     assert item["left_image"].shape == torch.Size([3, 64, 64])
     assert item["right_image"].shape == torch.Size([3, 64, 64])
-    assert item["metadata"].shape == torch.Size([2])
+    assert item["metadata"].shape == torch.Size([1])
     assert item["target"].shape == torch.Size([8])
     assert item["patient_id"] == "0"

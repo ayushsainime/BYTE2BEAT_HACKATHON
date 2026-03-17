@@ -8,7 +8,7 @@ from utils.config import FreezePolicyConfig, ModelConfig
 
 def test_model_forward_shape() -> None:
     config = ModelConfig(
-        backbone_name="efficientnet_b0",
+        backbone_name="efficientnet_b4",
         pretrained=False,
         num_labels=8,
         image_feature_dropout=0.2,
@@ -16,13 +16,13 @@ def test_model_forward_shape() -> None:
         metadata_dropout=0.1,
         fusion_hidden_dims=[64, 32],
         fusion_dropout=0.2,
-        freeze_policy=FreezePolicyConfig(enabled=True, freeze_encoder_epochs=1, unfreeze_last_n_stages=2, full_finetune_epoch=3),
+        freeze_policy=FreezePolicyConfig(enabled=True, freeze_encoder_epochs=5, unfreeze_last_n_stages=2, full_finetune_epoch=5),
     )
     model = MultimodalRiskModel(config)
 
     left = torch.randn(2, 3, 224, 224)
     right = torch.randn(2, 3, 224, 224)
-    metadata = torch.randn(2, 2)
+    metadata = torch.randn(2, 1)
 
     logits = model(left, right, metadata)
     assert logits.shape == torch.Size([2, 8])

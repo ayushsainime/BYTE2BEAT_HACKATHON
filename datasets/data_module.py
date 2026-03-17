@@ -43,7 +43,6 @@ def build_data_bundle(data_config: DataConfig) -> DataBundle:
         transform=get_train_transform(data_config),
         age_mean=float(metadata_stats["age_mean"]),
         age_std=float(metadata_stats["age_std"]),
-        sex_mapping=dict(metadata_stats["sex_mapping"]),
         include_target=True,
     )
     val_dataset = FundusMultimodalDataset(
@@ -51,7 +50,6 @@ def build_data_bundle(data_config: DataConfig) -> DataBundle:
         transform=get_eval_transform(data_config),
         age_mean=float(metadata_stats["age_mean"]),
         age_std=float(metadata_stats["age_std"]),
-        sex_mapping=dict(metadata_stats["sex_mapping"]),
         include_target=True,
     )
     test_dataset = FundusMultimodalDataset(
@@ -59,7 +57,6 @@ def build_data_bundle(data_config: DataConfig) -> DataBundle:
         transform=get_eval_transform(data_config),
         age_mean=float(metadata_stats["age_mean"]),
         age_std=float(metadata_stats["age_std"]),
-        sex_mapping=dict(metadata_stats["sex_mapping"]),
         include_target=True,
     )
 

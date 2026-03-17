@@ -44,7 +44,7 @@ def make_data_config(tmp_path: Path) -> DataConfig:
             val_batch_size=2,
             test_batch_size=2,
         ),
-        metadata=MetadataConfig(age_min=0.0, age_max=120.0, sex_mapping={"Female": 0.0, "Male": 1.0}),
+        metadata=MetadataConfig(age_min=0.0, age_max=120.0),
     )
 
 
@@ -124,3 +124,4 @@ def test_stratified_split_preserves_label_prevalence(tmp_path: Path) -> None:
             assert abs(float(split_prevalence[label]) - float(full_prevalence[label])) < 0.2, (
                 f"{split_name} prevalence drift too high for {label}"
             )
+

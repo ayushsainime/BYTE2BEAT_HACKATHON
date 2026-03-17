@@ -19,7 +19,7 @@ class MultimodalRiskModel(nn.Module):
         )
 
         self.metadata_branch = nn.Sequential(
-            nn.Linear(2, model_config.metadata_hidden_dim),
+            nn.Linear(1, model_config.metadata_hidden_dim),
             nn.ReLU(inplace=True),
             nn.Dropout(model_config.metadata_dropout),
             nn.Linear(model_config.metadata_hidden_dim, model_config.metadata_hidden_dim),
@@ -69,8 +69,7 @@ class MultimodalRiskModel(nn.Module):
             self.image_encoder.freeze_all()
             return
 
-        if epoch < freeze_policy.full_finetune_epoch:
-            self.image_encoder.unfreeze_last_n_stages(freeze_policy.unfreeze_last_n_stages)
-            return
-
+        # After freeze epochs, fully unfreeze for fine-tuning.
         self.image_encoder.unfreeze_all()
+
+

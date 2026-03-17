@@ -24,7 +24,7 @@ from tests.conftest import write_dummy_image
 
 def test_predictor_single_sample(tmp_path: Path) -> None:
     model_config = ModelConfig(
-        backbone_name="efficientnet_b0",
+        backbone_name="efficientnet_b4",
         pretrained=False,
         num_labels=8,
         image_feature_dropout=0.2,
@@ -32,7 +32,7 @@ def test_predictor_single_sample(tmp_path: Path) -> None:
         metadata_dropout=0.1,
         fusion_hidden_dims=[64, 32],
         fusion_dropout=0.2,
-        freeze_policy=FreezePolicyConfig(enabled=True, freeze_encoder_epochs=1, unfreeze_last_n_stages=2, full_finetune_epoch=3),
+        freeze_policy=FreezePolicyConfig(enabled=True, freeze_encoder_epochs=5, unfreeze_last_n_stages=2, full_finetune_epoch=5),
     )
 
     data_config = DataConfig(
@@ -49,7 +49,7 @@ def test_predictor_single_sample(tmp_path: Path) -> None:
         split=SplitConfig(0.7, 0.15, 0.15, 42, True),
         image=ImageConfig(size=64, mean=[0.5, 0.5, 0.5], std=[0.2, 0.2, 0.2]),
         loader=LoaderConfig(0, False, False, 2, 2, 2),
-        metadata=MetadataConfig(0.0, 120.0, {"Female": 0.0, "Male": 1.0}),
+        metadata=MetadataConfig(0.0, 120.0),
     )
 
     inference_config = InferenceConfig(
@@ -74,7 +74,7 @@ def test_predictor_single_sample(tmp_path: Path) -> None:
     ckpt_path = tmp_path / "best.pt"
     torch.save({"model_state_dict": model.state_dict()}, ckpt_path)
 
-    save_json(inference_config.metadata_stats_path, {"age_mean": 60.0, "age_std": 10.0, "sex_mapping": {"Female": 0.0, "Male": 1.0}})
+    save_json(inference_config.metadata_stats_path, {"age_mean": 60.0, "age_std": 10.0})
     save_json(inference_config.thresholds_path, {label: 0.5 for label in data_config.labels})
 
     left = tmp_path / "left.jpg"
@@ -90,7 +90,7 @@ def test_predictor_single_sample(tmp_path: Path) -> None:
         cv_proxy_config=cv_proxy_config,
     )
 
-    result = predictor.predict_single(left, right, age=65, sex="Female")
+    result = predictor.predict_single(left, right, age=65)
     assert set(result.labels.keys()) == set(data_config.labels)
     assert set(result.probabilities.keys()) == set(data_config.labels)
     assert "overall_cv_proxy" in result.cv_summary

@@ -5,7 +5,7 @@ mixed_precision: true
 grad_clip_norm: 1.0
 
 experiment:
-  name: baseline_efficientnet_b0
+  name: baseline_efficientnet_b4
   output_root: experiments
   log_every_n_steps: 20
 
@@ -27,4 +27,5 @@ checkpoint:
   mode: max
   early_stopping_patience: 5
   save_best_only: true
+
 

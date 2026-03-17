@@ -8,3 +8,5 @@ data/processed/
 data/splits/
 PLAN.md
 preprocessed_images
+eye_classification_compressed_t2.zip
+*.zip

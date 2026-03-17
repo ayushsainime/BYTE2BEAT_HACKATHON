@@ -181,7 +181,7 @@ def split_patient_dataframe(patient_df: pd.DataFrame, data_config: DataConfig) -
     }
 
 
-def compute_metadata_stats(train_df: pd.DataFrame, data_config: DataConfig) -> dict[str, float | dict[str, float]]:
+def compute_metadata_stats(train_df: pd.DataFrame, data_config: DataConfig) -> dict[str, float]:
     age_mean = float(train_df["age"].mean())
     age_std = float(train_df["age"].std(ddof=0))
     if age_std == 0.0:
@@ -190,14 +190,13 @@ def compute_metadata_stats(train_df: pd.DataFrame, data_config: DataConfig) -> d
     return {
         "age_mean": age_mean,
         "age_std": age_std,
-        "sex_mapping": data_config.metadata.sex_mapping,
     }
 
 
 def save_outputs(
     patient_df: pd.DataFrame,
     split_dfs: dict[str, pd.DataFrame],
-    metadata_stats: dict[str, float | dict[str, float]],
+    metadata_stats: dict[str, float],
     data_config: DataConfig,
 ) -> None:
     ensure_dir(data_config.paths.processed_dir)
@@ -236,3 +235,6 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+

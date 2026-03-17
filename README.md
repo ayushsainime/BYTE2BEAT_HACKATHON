@@ -1,6 +1,16 @@
 # Eye-Heart Connection
 
-Multimodal deep learning project for retinal fundus + metadata risk modeling.
+Simplified multimodal pipeline for retinal risk modeling.
+
+## Default Training Setup
+
+- Backbone: `EfficientNet-B4`
+- Inputs: Left image + Right image + Age
+- Loss: Weighted `BCEWithLogitsLoss`
+- Optimizer: `AdamW`
+- Scheduler: `Cosine Annealing`
+- Freeze: first 5 epochs
+- Fine-tune: unfreeze and continue training
 
 ## Setup
 
@@ -17,17 +27,8 @@ python -m datasets.data_quality --data-config configs/data.yaml
 
 ## Training
 
-Generic training entrypoint (choose any model config):
-
 ```bash
 python -m training.train --config configs/train.yaml --data-config configs/data.yaml --model-config configs/model.yaml
-```
-
-VGG19 and ResNet50 convenience scripts:
-
-```bash
-python -m training.train_vgg19
-python -m training.train_resnet50
 ```
 
 ## Evaluation
@@ -36,23 +37,18 @@ python -m training.train_resnet50
 python -m evaluation.run --config configs/eval.yaml --data-config configs/data.yaml --model-config configs/model.yaml --ckpt experiments/latest/best.pt
 ```
 
-Evaluation outputs include:
+Metrics reported include:
 - accuracy
 - precision
 - recall
 - f1
 - AUROC / PR-AUC
-- per-label report
-
-Files:
-- `data/processed/eval_predictions.csv`
-- `data/processed/thresholds.json`
-- `data/processed/eval_report.json`
+- per-label metrics
 
 ## Inference
 
 ```bash
-python -m inference.predict --ckpt experiments/latest/best.pt --left preprocessed_images/0_left.jpg --right preprocessed_images/0_right.jpg --age 69 --sex Female
+python -m inference.predict --ckpt experiments/latest/best.pt --left preprocessed_images/0_left.jpg --right preprocessed_images/0_right.jpg --age 69
 ```
 
 ## API
@@ -61,8 +57,7 @@ python -m inference.predict --ckpt experiments/latest/best.pt --left preprocesse
 uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
-`POST /predict` (multipart/form-data):
+`POST /predict` form fields:
 - `left_image`
 - `right_image`
 - `age`
-- `sex`
