@@ -1,13 +1,4 @@
-﻿__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.log
-.git/
-.gitignore
-.venv/
-venv/
-.pre-commit-config.yaml
+﻿.venv/
 .pytest_cache/
 notebooks/
 training/

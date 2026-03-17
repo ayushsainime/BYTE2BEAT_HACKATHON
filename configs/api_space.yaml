@@ -1,0 +1,8 @@
+﻿host: 0.0.0.0
+port: 7860
+reload: false
+checkpoint_path: artifacts/best.pt
+model_config_path: configs/model.yaml
+data_config_path: configs/data.yaml
+inference_config_path: configs/inference_space.yaml
+cv_proxy_config_path: configs/cv_proxy.yaml

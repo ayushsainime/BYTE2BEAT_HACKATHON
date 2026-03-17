@@ -9,4 +9,13 @@ data/splits/
 PLAN.md
 preprocessed_images
 eye_classification_compressed_t2.zip
+full_df.csv
 *.zip
+jg
+
+# Keep only required Space runtime artifacts
+artifacts/*
+!artifacts/best.pt
+!artifacts/metadata_stats.json
+!artifacts/thresholds.json
+!artifacts/README.md

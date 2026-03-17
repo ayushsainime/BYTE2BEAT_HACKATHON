@@ -1,7 +1,0 @@
-api
-datasets
-evaluation
-inference
-models
-training
-utils

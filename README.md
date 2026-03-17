@@ -1,63 +1,68 @@
+﻿---
+title: Eye Heart Connection API
+sdk: docker
+app_port: 7860
+---
+
 # Eye-Heart Connection
 
-Simplified multimodal pipeline for retinal risk modeling.
+FastAPI deployment package for multimodal retinal cardiovascular risk prediction.
 
-## Default Training Setup
+## What This Space Serves
+
+- `GET /`: lightweight upload UI (left image, right image, age)
+- `GET /health`: health check
+- `POST /predict`: returns per-label probabilities, binary labels, and CV proxy summary
+
+## Runtime Artifacts (required)
+
+Keep these files in `artifacts/`:
+
+- `artifacts/best.pt`
+- `artifacts/metadata_stats.json`
+- `artifacts/thresholds.json`
+
+## Main Model Setup
 
 - Backbone: `EfficientNet-B4`
 - Inputs: Left image + Right image + Age
-- Loss: Weighted `BCEWithLogitsLoss`
-- Optimizer: `AdamW`
-- Scheduler: `Cosine Annealing`
-- Freeze: first 5 epochs
-- Fine-tune: unfreeze and continue training
+- Output: 8-label multi-label prediction (`N,D,G,C,A,H,M,O`)
 
-## Setup
+## Hugging Face Spaces (Docker)
 
-```bash
-python -m pip install -e .[dev]
-```
+This repository is configured for Docker Spaces.
 
-## Data Preparation
+- Docker entrypoint: `python -m api.gradio_app`
+- API config used in container: `configs/api_space.yaml`
+
+## Local Run
 
 ```bash
-python -m datasets.build_patient_df --config configs/data.yaml
-python -m datasets.data_quality --data-config configs/data.yaml
+python -m pip install -e .
+$env:API_CONFIG_PATH='configs/api_space.yaml'
+uvicorn api.main:app --host 0.0.0.0 --port 7860
 ```
 
-## Training
+Open: `http://127.0.0.1:7860`
+
+## Notes
+
+- Large checkpoint files should be tracked with Git LFS (`.gitattributes` included).
+- Training, evaluation, and dataset-heavy files are excluded from Docker upload for lean deployment.
+
+## Gradio Frontend (Recommended Demo UI)
+
+Run the visually rich Gradio frontend:
 
 ```bash
-python -m training.train --config configs/train.yaml --data-config configs/data.yaml --model-config configs/model.yaml
+python -m api.gradio_app
 ```
 
-## Evaluation
+Then open: `http://127.0.0.1:7860`
 
-```bash
-python -m evaluation.run --config configs/eval.yaml --data-config configs/data.yaml --model-config configs/model.yaml --ckpt experiments/latest/best.pt
-```
+The Gradio page includes:
+- Sidebar with project summary, tech stack, and library list
+- Left/right fundus uploads + age input
+- Probability plot and detailed prediction table
+- CV summary output
 
-Metrics reported include:
-- accuracy
-- precision
-- recall
-- f1
-- AUROC / PR-AUC
-- per-label metrics
-
-## Inference
-
-```bash
-python -m inference.predict --ckpt experiments/latest/best.pt --left preprocessed_images/0_left.jpg --right preprocessed_images/0_right.jpg --age 69
-```
-
-## API
-
-```bash
-uvicorn api.main:app --host 0.0.0.0 --port 8000
-```
-
-`POST /predict` form fields:
-- `left_image`
-- `right_image`
-- `age`

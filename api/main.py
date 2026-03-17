@@ -1,9 +1,10 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import os
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 
 from api.schemas import PredictResponse
 from inference.predictor import Predictor
@@ -18,6 +19,7 @@ from utils.logging import get_logger
 
 LOGGER = get_logger(__name__)
 app = FastAPI(title="Multimodal Retinal CV Risk API", version="0.1.0")
+UI_INDEX_PATH = Path(__file__).parent / "static" / "index.html"
 
 
 @app.on_event("startup")
@@ -42,6 +44,13 @@ def startup_event() -> None:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    if not UI_INDEX_PATH.exists():
+        raise HTTPException(status_code=404, detail="UI page not found")
+    return FileResponse(UI_INDEX_PATH)
 
 
 @app.post("/predict", response_model=PredictResponse)
