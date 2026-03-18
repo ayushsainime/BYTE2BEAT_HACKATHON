@@ -9,7 +9,6 @@ This project is built for both:
 
 <img width="1892" height="911" alt="Screenshot 2026-03-18 224531" src="https://github.com/user-attachments/assets/cf9f5fc3-f092-4627-83b5-68a1750c5e0b" />
 
-<img width="1691" height="885" alt="Screenshot 2026-03-18 224541" src="https://github.com/user-attachments/assets/12583bee-874d-44fb-b2c3-b3df575862c4" />
 
 
 ## Why This Project Matters
@@ -38,6 +37,8 @@ From these outputs, it computes a **CV proxy summary** with:
 - diabetes proxy,
 - atherosclerotic proxy,
 - overall risk band (`low` / `medium` / `high`).
+- 
+<img width="1691" height="885" alt="Screenshot 2026-03-18 224541" src="https://github.com/user-attachments/assets/12583bee-874d-44fb-b2c3-b3df575862c4" />
 
 ## Model Highlights
 
