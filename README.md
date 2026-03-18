@@ -1,8 +1,3 @@
-﻿---
-title: Eye Heart Connection API
-sdk: docker
-app_port: 7860
----
 
 # Eye-Heart Connection
 
@@ -11,6 +6,11 @@ A multimodal deep learning system that predicts retinal diagnostic indicators fr
 This project is built for both:
 - rigorous ML experimentation, and
 - production-style serving (Docker + FastAPI + Gradio UI)
+
+<img width="1892" height="911" alt="Screenshot 2026-03-18 224531" src="https://github.com/user-attachments/assets/cf9f5fc3-f092-4627-83b5-68a1750c5e0b" />
+
+<img width="1691" height="885" alt="Screenshot 2026-03-18 224541" src="https://github.com/user-attachments/assets/12583bee-874d-44fb-b2c3-b3df575862c4" />
+
 
 ## Why This Project Matters
 
