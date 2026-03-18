@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "eye-heart-connection"
 version = "0.1.0"
-description = "Multimodal retinal fundus and metadata modeling for cardiovascular risk proxies."
+description = "Multimodal retinal fundus and metadata modeling for cardiovascular risk ."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -26,6 +26,8 @@ dependencies = [
   "python-multipart>=0.0.9",
   "Pillow>=10.2.0",
   "matplotlib>=3.8.0,<4.0.0",
+  "gradio>=5.0.0",
+
 ]
 
 [project.optional-dependencies]
