@@ -36,8 +36,20 @@ class Predictor:
         self.device = resolve_device(inference_config.device)
         self.model = MultimodalRiskModel(model_config).to(self.device)
 
-        checkpoint = torch.load(checkpoint_path, map_location=self.device)
-        self.model.load_state_dict(checkpoint["model_state_dict"])
+        # PyTorch >=2.6 defaults torch.load(..., weights_only=True), which can fail
+        # for full training checkpoints. Our artifact is trusted and versioned in-repo.
+        try:
+            checkpoint = torch.load(
+                checkpoint_path,
+                map_location=self.device,
+                weights_only=False,
+            )
+        except TypeError:
+            # Compatibility with torch versions that do not support weights_only.
+            checkpoint = torch.load(checkpoint_path, map_location=self.device)
+
+        state_dict = checkpoint["model_state_dict"] if "model_state_dict" in checkpoint else checkpoint
+        self.model.load_state_dict(state_dict)
         self.model.eval()
 
         self.transform = A.Compose(
@@ -155,3 +167,4 @@ class Predictor:
                 )
             )
         return outputs
+
