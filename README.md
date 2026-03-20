@@ -1,3 +1,13 @@
+﻿---
+title: Eye-Heart Connection
+emoji: 🩺
+colorFrom: green
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 
 # Eye-Heart Connection
 
@@ -231,3 +241,5 @@ What this project demonstrates:
 ## Disclaimer
 
 This repository is for research and educational use. It is **not** a medical device and must not be used for clinical decision-making without appropriate regulatory and clinical validation.
+
+
