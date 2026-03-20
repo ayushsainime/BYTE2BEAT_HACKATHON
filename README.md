@@ -3,6 +3,9 @@
 
 A multimodal deep learning system that predicts retinal diagnostic indicators from **left + right fundus images + patient age**, then derives an interpretable **cardiovascular risk proxy summary**.
 
+try it out - 
+https://huggingface.co/spaces/ayushsainime/eye_heart_connection_byte_2_beat
+
 This project is built for both:
 - rigorous ML experimentation, and
 - production-style serving (Docker + FastAPI + Gradio UI)
