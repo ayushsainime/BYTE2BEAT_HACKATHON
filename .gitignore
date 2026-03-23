@@ -1,3 +1,7 @@
+*.db
+.states
+assets/external/
+*.py[cod]
 __pycache__/
 *.pyc
 .pytest_cache/
@@ -19,3 +23,14 @@ artifacts/*
 !artifacts/metadata_stats.json
 !artifacts/thresholds.json
 !artifacts/README.md
+*.png
+*.jpg
+photos/*
+
+.agents\workflows
+.agents
+eye_heart_connection.egg-info
+.web
+.vscode
+pyrightconfig.json
+

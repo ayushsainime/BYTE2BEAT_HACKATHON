@@ -30,6 +30,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+frontend = [
+  "reflex>=0.7.0",
+]
 dev = [
   "pytest>=8.0.0",
   "httpx>=0.27.0",
@@ -39,7 +42,7 @@ dev = [
 include-package-data = true
 
 [tool.setuptools.packages.find]
-include = ["api*", "datasets*", "evaluation*", "inference*", "models*", "training*", "utils*"]
+include = ["api*", "datasets*", "evaluation*", "inference*", "models*", "reflex_app*", "training*", "utils*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
