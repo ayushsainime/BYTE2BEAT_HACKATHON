@@ -1,4 +1,4 @@
-# Eye-Heart Connection
+﻿# Eye-Heart Connection
 
 End-to-end multimodal AI system for cardiovascular-risk-oriented retinal screening.
 The model consumes:
@@ -31,7 +31,7 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 ## Model Performance
 
 ### Training and Validation Metrics
-![Training and validation metrics](photos/mode_training_\ and_validation_metrics.png)
+![Training and validation metrics](photos/mode_training_%20and_validation_metrics.png)
 
 ### Patient Prediction Metrics
 ![Patient prediction metrics](photos/patient_predictiion_metrics.png)
@@ -40,7 +40,7 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 ![Precision recall curves](photos/precision_recall_curves.png)
 
 ### ROC Curves by Labels
-![ROC curves by labels](photos/ROC\ CURVES\ BY\ LABELS.png)
+![ROC curves by labels](photos/ROC%20CURVES%20BY%20LABELS.png)
 
 ## System Architecture
 
