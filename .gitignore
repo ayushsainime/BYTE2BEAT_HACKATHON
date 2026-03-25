@@ -23,14 +23,22 @@ artifacts/*
 !artifacts/metadata_stats.json
 !artifacts/thresholds.json
 !artifacts/README.md
-*.png
-*.jpg
+!assets/sample_cases/
+!assets/sample_cases/*.jpg
+!assets/sample_cases/*.jpeg
+!assets/sample_cases/*.png
 photos/*
-
+!photos/
+!photos/mode_training_\ and_validation_metrics.png
+!photos/patient_predictiion_metrics.png
+!photos/precision_recall_curves.png
+!photos/ROC\ CURVES\ BY\ LABELS.png
+uploaded_files/
 .agents\workflows
 .agents
 eye_heart_connection.egg-info
 .web
 .vscode
 pyrightconfig.json
+pics_for_frontend_reflex
 
