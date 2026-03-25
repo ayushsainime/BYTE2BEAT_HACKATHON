@@ -1,6 +1,6 @@
 ---
 title: Eye-Heart Connection
-emoji: stethoscope
+emoji: "🩺"
 colorFrom: green
 colorTo: indigo
 sdk: docker
