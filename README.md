@@ -1,13 +1,3 @@
----
-title: Eye-Heart Connection
-emoji: "🩺"
-colorFrom: green
-colorTo: indigo
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # Eye-Heart Connection
 
 End-to-end multimodal AI system for cardiovascular-risk-oriented retinal screening.
@@ -23,9 +13,9 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 - Bilateral retinal modeling (left + right eye) with age fusion
 - 8-label multi-label prediction
 - CV proxy post-processing for clinically meaningful risk banding
-- Production-ready API with FastAPI
-- Reflex UI (modern interface with sample image dropdown, charting, and medical information sidebar)
-- Dockerized Hugging Face Spaces deployment for the Reflex experience
+- Production-ready inference API with FastAPI
+- Reflex UI with modern layout, charting, and guided patient flow
+- Dockerized Railway deployment
 
 ## Labels Predicted
 
@@ -80,11 +70,11 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 - HTTPX
 
 ### Frontend
-- Reflex (with Radix UI + Recharts)
+- Reflex (Radix UI + Recharts)
 
 ### Packaging and Deployment
 - Docker
-- Hugging Face Spaces
+- Railway
 
 ## Repository Structure
 
@@ -113,7 +103,7 @@ python -m pip install -e .
 python -m pip install -e ".[frontend,dev]"
 ```
 
-## Run the App Locally
+## Run Locally
 
 ### Reflex UI + Inference API
 
@@ -132,8 +122,8 @@ reflex run
 Open: `http://localhost:3000`
 
 Notes:
-- Reflex app config is in `rxconfig.py` (frontend `3000`, Reflex backend `8001`).
-- Reflex frontend calls prediction API at `http://localhost:8000`.
+- Reflex config is in `rxconfig.py` (frontend `3000`, Reflex backend `8001`).
+- Reflex frontend calls inference API at `http://localhost:8000`.
 
 ## API Reference
 
@@ -157,9 +147,9 @@ curl -X POST "http://127.0.0.1:8000/predict" \
   -F "age=55"
 ```
 
-## Hugging Face Spaces Deployment (Docker)
+## Railway Deployment (Docker)
 
-This repository is configured as a Docker Space.
+This repo is ready for Railway Docker deployment.
 
 ### Runtime artifacts required in `artifacts/`
 
@@ -167,25 +157,29 @@ This repository is configured as a Docker Space.
 - `metadata_stats.json`
 - `thresholds.json`
 
-### Build behavior
+### Container runtime behavior
 
-The Docker image starts:
-- FastAPI inference API on `:8000`
-- Reflex frontend (single-port mode) on `${PORT}` (default `7860`)
+- Starts FastAPI inference API on internal `:8000`
+- Starts Reflex frontend on Railway public `${PORT}` (default fallback `7860`)
+- Entry script: `start_railway_reflex.sh`
 
-Entrypoint: `start_hf_reflex.sh`
+### Railway setup steps
 
-### Deploy steps
+1. Create a new Railway project.
+2. Select **Deploy from GitHub Repo** and choose this repository.
+3. Railway will detect Dockerfile automatically.
+4. Set environment variables if needed:
+- `PORT` (Railway usually injects this automatically)
+- `API_CONFIG_PATH=configs/api_railway.yaml`
+- Optional override: `EHC_API_BASE=http://localhost:8000`
+5. Deploy and watch logs until both FastAPI and Reflex services start.
 
-1. Create a Docker Space in Hugging Face.
-2. Ensure Git LFS is enabled for large model files:
+### Recommended post-deploy checks
 
-```bash
-git lfs install
-```
-
-3. Push repository to your Space remote.
-4. Spaces will build and serve on port `7860`.
+1. Open your Railway service URL.
+2. Confirm home page loads (Reflex UI).
+3. Upload sample images and run one prediction.
+4. Confirm `/predict` flow returns results in UI.
 
 ## Training and Evaluation
 

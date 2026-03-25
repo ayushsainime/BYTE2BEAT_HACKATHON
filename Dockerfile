@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV API_CONFIG_PATH=configs/api_space.yaml
+ENV API_CONFIG_PATH=configs/api_railway.yaml
 ENV PORT=7860
 
 WORKDIR /app
@@ -23,12 +23,12 @@ COPY models /app/models
 COPY reflex_app /app/reflex_app
 COPY utils /app/utils
 COPY assets /app/assets
-COPY start_hf_reflex.sh /app/start_hf_reflex.sh
+COPY start_railway_reflex.sh /app/start_railway_reflex.sh
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir ".[frontend]" \
-    && chmod +x /app/start_hf_reflex.sh
+    && chmod +x /app/start_railway_reflex.sh
 
 EXPOSE 7860
 
-CMD ["/app/start_hf_reflex.sh"]
+CMD ["/app/start_railway_reflex.sh"]

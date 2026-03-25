@@ -1,0 +1,5 @@
+﻿device: auto
+image_size: 224
+global_threshold: 0.5
+metadata_stats_path: artifacts/metadata_stats.json
+thresholds_path: artifacts/thresholds.json
