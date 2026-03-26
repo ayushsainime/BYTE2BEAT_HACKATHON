@@ -156,39 +156,30 @@ curl -X POST "http://127.0.0.1:8000/predict" \
   -F "age=55"
 ```
 
-## Railway Deployment (Docker)
+## Hugging Face Spaces Deployment (Docker)
 
-This repo is ready for Railway Docker deployment.
+This repo is strictly configured for Hugging Face Spaces via the Docker SDK.
 
 ### Runtime artifacts required in `artifacts/`
 
-- `best.pt`
+- `best.pt` (Must be tracked via Git LFS)
 - `metadata_stats.json`
 - `thresholds.json`
 
 ### Container runtime behavior
 
-- Starts FastAPI inference API on internal `:8000`
-- Starts Reflex frontend on Railway public `${PORT}` (default fallback `7860`)
-- Entry script: `start_railway_reflex.sh`
+- Hugging Face detects the `sdk: docker` YAML header inside `README.md`.
+- The `Dockerfile` compiles the environment natively as non-root `user 1000`.
+- The container runs `start_hf.sh` which boots both the FastAPI backend and Reflex frontends locally, hooking the Reflex port natively to Hugging Face's global routing (`7860`).
 
-### Railway setup steps
-
-1. Create a new Railway project.
-2. Select **Deploy from GitHub Repo** and choose this repository.
-3. Railway will detect Dockerfile automatically.
-4. Set environment variables if needed:
-- `PORT` (Railway usually injects this automatically)
-- `API_CONFIG_PATH=configs/api_railway.yaml`
-- Optional override: `EHC_API_BASE=http://localhost:8000`
-5. Deploy and watch logs until both FastAPI and Reflex services start.
-
-### Recommended post-deploy checks
-
-1. Open your Railway service URL.
-2. Confirm home page loads (Reflex UI).
-3. Upload sample images and run one prediction.
-4. Confirm `/predict` flow returns results in UI.
+### Update/Push workflow
+Initialize Git LFS and push to the Space URL:
+```bash
+git lfs install
+git add .
+git commit -m "Deploy to HF Spaces"
+git push origin main
+```
 
 ## Training and Evaluation
 
