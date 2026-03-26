@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy README to fix setuptools missing file error
+COPY --chown=user:user README.md /app/README.md
 COPY --chown=user:user pyproject.toml /app/pyproject.toml
 COPY --chown=user:user rxconfig.py /app/rxconfig.py
 COPY --chown=user:user configs /app/configs
@@ -30,6 +32,9 @@ COPY --chown=user:user reflex_app /app/reflex_app
 COPY --chown=user:user utils /app/utils
 COPY --chown=user:user assets /app/assets
 COPY --chown=user:user start_hf.sh /app/start_hf.sh
+
+# Ensure the /app directory itself is owned by user so pip can create .egg-info folders
+RUN chown user:user /app
 
 # Switch to the non-root HF user
 USER user
