@@ -1,0 +1,13 @@
+﻿.venv/
+.pytest_cache/
+notebooks/
+training/
+evaluation/
+datasets/
+tests/
+experiments/
+preprocessed_images/
+data/
+full_df.csv
+PLAN.md
+*.zip

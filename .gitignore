@@ -1,0 +1,54 @@
+*.db
+.states
+assets/external/
+*.py[cod]
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+experiments/
+data/processed/
+data/splits/
+PLAN.md
+preprocessed_images
+eye_classification_compressed_t2.zip
+full_df.csv
+*.zip
+jg
+
+# Keep only required runtime artifacts
+artifacts/*
+!artifacts/best.pt
+!artifacts/metadata_stats.json
+!artifacts/thresholds.json
+!artifacts/README.md
+
+# Track only deployment-safe frontend media that Reflex serves from /assets.
+assets/*
+!assets/
+!assets/frontend.css
+!assets/animation_reflex.mp4
+!assets/sample_left.jpg
+!assets/sample_right.jpg
+!assets/sample_cases/
+!assets/sample_cases/*.jpg
+!assets/sample_cases/*.jpeg
+!assets/sample_cases/*.png
+
+# Keep only README/report figures from photos.
+photos/*
+!photos/
+!photos/mode_training_\ and_validation_metrics.png
+!photos/patient_predictiion_metrics.png
+!photos/precision_recall_curves.png
+!photos/ROC\ CURVES\ BY\ LABELS.png
+uploaded_files/
+.agents\workflows
+.agents
+eye_heart_connection.egg-info
+.web
+.vscode
+pyrightconfig.json
+pics_for_frontend_reflex
+

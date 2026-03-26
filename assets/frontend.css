@@ -1,0 +1,22 @@
+@import url("https://fonts.cdnfonts.com/css/kind-sans");
+
+:root {
+  --ehc-green-strong: #15803d;
+  --ehc-green-soft: #bbf7d0;
+  --ehc-surface: rgba(255, 255, 255, 0.9);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Kind Sans", "Nunito Sans", "Segoe UI", sans-serif;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}

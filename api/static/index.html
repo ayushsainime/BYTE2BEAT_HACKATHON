@@ -1,0 +1,142 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Eye-Heart Connection Demo</title>
+  <style>
+    :root {
+      --bg: #f6f9fc;
+      --card: #ffffff;
+      --ink: #112240;
+      --muted: #4b5563;
+      --accent: #0b7285;
+      --accent-2: #2a9d8f;
+      --border: #dbe4ee;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top right, #d7f5ff, var(--bg));
+      color: var(--ink);
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      margin-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.4rem;
+    }
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    label {
+      font-size: 0.88rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+    input[type="file"], input[type="number"], button {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px;
+      font-size: 0.95rem;
+      background: #fff;
+    }
+    button {
+      margin-top: 8px;
+      border: none;
+      color: #fff;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+      font-size: 0.82rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Eye-Heart Connection API Demo</h1>
+      <p>Upload left and right fundus images with patient age, then run prediction.</p>
+      <form id="predictForm">
+        <div class="grid">
+          <div>
+            <label for="left">Left Eye Image</label>
+            <input id="left" name="left_image" type="file" accept="image/*" required />
+          </div>
+          <div>
+            <label for="right">Right Eye Image</label>
+            <input id="right" name="right_image" type="file" accept="image/*" required />
+          </div>
+          <div>
+            <label for="age">Age</label>
+            <input id="age" name="age" type="number" min="0" max="120" step="1" required />
+          </div>
+        </div>
+        <button id="submitBtn" type="submit">Predict Risk Factors</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h1>Response</h1>
+      <pre id="output">Run a prediction to see output.</pre>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('predictForm');
+    const output = document.getElementById('output');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      submitBtn.disabled = true;
+      output.textContent = 'Running prediction...';
+
+      const formData = new FormData(form);
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          body: formData,
+        });
+        const body = await response.json();
+        output.textContent = JSON.stringify(body, null, 2);
+      } catch (error) {
+        output.textContent = `Request failed: ${error}`;
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
