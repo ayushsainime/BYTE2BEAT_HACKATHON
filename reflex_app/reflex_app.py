@@ -121,8 +121,13 @@ class AppState(rx.State):
     error_message: str = ""
     is_loading: bool = False
 
-    def set_age(self, value: list[int] | int) -> None:
-        self.age = value[0] if isinstance(value, list) else int(value)
+    def set_age(self, value: list[int] | int | str) -> None:
+        parsed_age = value[0] if isinstance(value, list) else value
+        try:
+            age_value = int(parsed_age)
+        except (TypeError, ValueError):
+            return
+        self.age = max(1, min(120, age_value))
 
     def _persist_upload(self, side: str, original_name: str, payload: bytes) -> str:
         """Store upload bytes in Reflex upload dir and return stored name."""
@@ -535,6 +540,17 @@ def input_panel() -> rx.Component:
                         on_change=AppState.set_age,
                         width="100%",
                         color_scheme="green",
+                    ),
+                    rx.input(
+                        type="number",
+                        min=1,
+                        max=120,
+                        step=1,
+                        value=AppState.age,
+                        on_change=AppState.set_age,
+                        placeholder="Enter patient age",
+                        width="220px",
+                        variant="surface",
                     ),
                     spacing="3",
                     width="100%",

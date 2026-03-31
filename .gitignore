@@ -16,7 +16,7 @@ eye_classification_compressed_t2.zip
 full_df.csv
 *.zip
 jg
-
+feature_ideas.md
 # Keep only required runtime artifacts
 artifacts/*
 !artifacts/best.pt
