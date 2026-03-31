@@ -8,6 +8,8 @@ The model consumes:
 
 It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular (CV) risk proxy summary (`low`, `medium`, `high`).
 
+TRY IT OUT - [EYE_HEART_CONNECTION](https://huggingface.co/spaces/ayushsainime/eye_heart_connect_reflex_app)
+
 ## Highlights
 
 - Bilateral retinal modeling (left + right eye) with age fusion
@@ -48,6 +50,10 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 2. Age is processed through a metadata branch.
 3. Visual and metadata features are fused for 8-label multi-label prediction.
 4. Predicted probabilities are transformed into CV proxy components and a final risk band.
+
+ACHITECTURE DIAGRAM - 
+![architecture diagram](mermaid-diagram-2026-03-30-191850.png)
+
 
 ## Tech Stack
 
