@@ -109,7 +109,16 @@ class AppState(rx.State):
     is_loading: bool = False
 
     def set_age(self, value: list[int] | int) -> None:
-        self.age = value[0] if isinstance(value, list) else int(value)
+        raw_age = value[0] if isinstance(value, list) else int(value)
+        self.age = max(1, min(120, raw_age))
+
+    def set_age_from_input(self, value: str) -> None:
+        """Handle numeric input box changes for age."""
+        try:
+            raw_age = int(value)
+        except (TypeError, ValueError):
+            return
+        self.age = max(1, min(120, raw_age))
 
     def _persist_upload(self, side: str, original_name: str, payload: bytes) -> str:
         """Store upload bytes in Reflex upload dir and return stored name."""
@@ -509,10 +518,23 @@ def input_panel() -> rx.Component:
                     rx.slider(
                         min=1,
                         max=120,
-                        default_value=[55],
+                        value=[AppState.age],
                         on_change=AppState.set_age,
                         width="100%",
                         color_scheme="green",
+                    ),
+                    rx.input(
+                        type="number",
+                        min=1,
+                        max=120,
+                        step=1,
+                        value=AppState.age,
+                        on_change=AppState.set_age_from_input,
+                        placeholder="Enter age (1-120)",
+                        width="100%",
+                        color_scheme="green",
+                        radius="large",
+                        variant="surface",
                     ),
                     spacing="3",
                     width="100%",

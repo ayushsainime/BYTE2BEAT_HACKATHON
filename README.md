@@ -17,7 +17,7 @@ TRY IT OUT - [EYE_HEART_CONNECTION](https://huggingface.co/spaces/ayushsainime/e
 - CV proxy post-processing for clinically meaningful risk banding
 - Production-ready inference API with FastAPI
 - Reflex UI with modern layout, charting, and guided patient flow
-- Dockerized Railway deployment
+- Dockerized Hugging Face Spaces deployment
 
 ## Labels Predicted
 
@@ -80,7 +80,40 @@ ACHITECTURE DIAGRAM -
 
 ### Packaging and Deployment
 - Docker
-- Railway
+- Hugging Face Spaces
+
+## Challenges We Faced
+
+### Deployment Platform Journey
+
+Deploying this multimodal AI system came with its fair share of challenges. We went through multiple deployment platforms before finding the right fit:
+
+1. **Railway** - Our initial deployment attempt. While Railway is great for general web applications, we encountered limitations with resource constraints and build times for ML models with heavy dependencies.
+
+2. **Render** - We then switched to Render, hoping for better ML support. However, we faced similar issues with memory limits and cold start times that affected the user experience.
+
+3. **Hugging Face Spaces** - Finally, we found our home! Hugging Face Spaces turned out to be the ideal choice for several reasons:
+   - **Built for AI/ML**: Native support for ML models with GPU options
+   - **Generous free tier**: Adequate resources for inference workloads
+   - **Docker support**: Easy containerization and deployment
+   - **Community visibility**: Better discoverability for AI projects
+   - **Seamless model integration**: Direct integration with Hugging Face models and transformers ecosystem
+   - **Persistent storage**: Useful for caching model weights and artifacts
+
+### Frontend Evolution
+
+The frontend also went through iterations:
+
+- **Gradio** - We started with Gradio for quick prototyping. It's excellent for ML demos and getting something working fast. However, as our vision for the app grew, we found Gradio's customization options limiting for creating a polished, professional user experience.
+
+- **Reflex** - We made the switch to Reflex (formerly Pynecone) for a more modern, flexible frontend. Reflex gave us:
+  - Full control over UI components with Radix UI
+  - Interactive charts with Recharts integration
+  - A guided patient flow experience
+  - Professional, production-ready aesthetics
+  - Pure Python development (no need to write JavaScript)
+
+The journey from Gradio to Reflex transformed our app from a simple ML demo into a polished healthcare screening tool.
 
 ## Repository Structure
 
@@ -153,9 +186,9 @@ curl -X POST "http://127.0.0.1:8000/predict" \
   -F "age=55"
 ```
 
-## Railway Deployment (Docker)
+## Hugging Face Spaces Deployment (Docker)
 
-This repo is ready for Railway Docker deployment.
+This repo is ready for Hugging Face Spaces Docker deployment.
 
 ### Runtime artifacts required in `artifacts/`
 
@@ -166,23 +199,23 @@ This repo is ready for Railway Docker deployment.
 ### Container runtime behavior
 
 - Starts FastAPI inference API on internal `:8000`
-- Starts Reflex frontend on Railway public `${PORT}` (default fallback `7860`)
-- Entry script: `start_railway_reflex.sh`
+- Starts Reflex frontend on public `${PORT}` (default fallback `7860`)
+- Uses the Docker entrypoint script included in the repository root.
 
-### Railway setup steps
+### Hugging Face Spaces setup steps
 
-1. Create a new Railway project.
-2. Select **Deploy from GitHub Repo** and choose this repository.
-3. Railway will detect Dockerfile automatically.
-4. Set environment variables if needed:
-- `PORT` (Railway usually injects this automatically)
-- `API_CONFIG_PATH=configs/api_railway.yaml`
+1. Create a new Space on Hugging Face and choose **Docker** as the SDK.
+2. Push this repository to the Space.
+3. Hugging Face will detect the `Dockerfile` and build automatically.
+4. In the Space settings, add environment variables if needed:
+- `PORT=7860`
+- `API_CONFIG_PATH=configs/api_space.yaml`
 - Optional override: `EHC_API_BASE=http://localhost:8000`
 5. Deploy and watch logs until both FastAPI and Reflex services start.
 
 ### Recommended post-deploy checks
 
-1. Open your Railway service URL.
+1. Open your Hugging Face Space URL.
 2. Confirm home page loads (Reflex UI).
 3. Upload sample images and run one prediction.
 4. Confirm `/predict` flow returns results in UI.
