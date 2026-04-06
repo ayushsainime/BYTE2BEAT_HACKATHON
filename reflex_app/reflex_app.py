@@ -899,11 +899,15 @@ def input_panel() -> rx.Component:
                 background=f"linear-gradient(135deg, {PURPLE_VIBRANT}, {PINK_VIBRANT})",
                 box_shadow=f"0 6px 24px {PURPLE_VIBRANT}35",
                 border="none",
-                _hover={
+            _hover=rx.cond(
+                AppState.is_loading,
+                {},
+                {
                     "background": f"linear-gradient(135deg, {PINK_VIBRANT}, {PURPLE_VIBRANT})",
                     "box_shadow": f"0 8px 30px {PURPLE_VIBRANT}45",
                     "transform": "translateY(-2px)",
-                } if not AppState.is_loading else {},
+                },
+            ),
             ),
             rx.cond(
                 AppState.error_message != "",
