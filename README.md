@@ -24,7 +24,7 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 - CV proxy post-processing for clinically meaningful risk banding
 - Production-ready inference API with FastAPI
 - Reflex UI with modern layout, charting, and guided patient flow
-- Dockerized Railway deployment
+- Dockerized Hugging Face Spaces deployment
 
 ## Labels Predicted
 
@@ -83,7 +83,7 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 
 ### Packaging and Deployment
 - Docker
-- Railway
+- Hugging Face Spaces (Docker SDK)
 
 ## Repository Structure
 
