@@ -45,6 +45,9 @@ TEXT_WHITE = "#FFFFFF"
 CARD_BG_GLASS = "rgba(255, 255, 255, 0.85)"
 CARD_BG_WHITE = "rgba(255, 255, 255, 0.95)"
 
+# Background tint
+BG_TINT = "#f8faf8"
+
 LABEL_DESCRIPTIONS = {
     "N": "Normal",
     "D": "Diabetes",
@@ -851,7 +854,7 @@ def input_panel() -> rx.Component:
                     rx.cond(
                         AppState.selected_sample != "",
                         rx.hstack(
-                            rx.icon("check-circle", size=16, color=GREEN_VIBRANT),
+                            rx.icon("circle-check", size=16, color=GREEN_VIBRANT),
                             rx.text(
                                 "Loaded: ",
                                 AppState.selected_sample,
@@ -913,7 +916,7 @@ def input_panel() -> rx.Component:
                 AppState.error_message != "",
                 rx.box(
                     rx.hstack(
-                        rx.icon("alert-triangle", size=20, color=RED_VIBRANT),
+                        rx.icon("triangle-alert", size=20, color=RED_VIBRANT),
                         rx.text(AppState.error_message, size="2", color=RED_VIBRANT, weight="medium"),
                         align="center",
                         gap="2",
