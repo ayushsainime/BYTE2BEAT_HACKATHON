@@ -12,8 +12,8 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 TRY IT OUT - [EYE_HEART_CONNECTION](https://huggingface.co/spaces/ayushsainime/eye_heart_connect_reflex_app)
 
 DEMO - 
+[![Watch the Demo](https://img.youtube.com/vi/Be5-Q3fMTNw/maxresdefault.jpg)](https://www.youtube.com/watch?v=Be5-Q3fMTNw)
 
-![demo](demo_eye_heart_connection.mp4)
 
 **"deployment only" code available on the "deploy" branch . 
 
