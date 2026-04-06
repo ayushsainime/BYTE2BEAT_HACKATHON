@@ -53,6 +53,7 @@ It predicts 8 ophthalmic indicators and derives an interpretable cardiovascular 
 
 ## System Architecture
 
+
 1. Left and right fundus images are encoded via a shared CNN backbone (EfficientNet-B4 based pipeline).
 2. Age is processed through a metadata branch.
 3. Visual and metadata features are fused for 8-label multi-label prediction.
