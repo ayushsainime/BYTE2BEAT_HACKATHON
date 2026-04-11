@@ -1,500 +1,366 @@
-﻿<div align="center">
+<div align="center">
 
-# 🔬 EYE ❤️ HEART CONNECTION
+# EYE HEART CONNECTION
 
-### *Multimodal AI for Cardiovascular Disease Prediction from Retinal Fundus Photography*
+**Multimodal retinal analysis for cardiovascular risk proxy estimation using bilateral fundus images and age metadata**
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-
-[![Deploy](https://img.shields.io/badge/🚀_Railway-Live-0B0D0E?style=flat-square)](https://railway.app)
-[![Hugging Face](https://img.shields.io/badge/🤗_HF_Spaces-Deployed-FFD21E?style=flat-square)](https://huggingface.co)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.2%2B-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Reflex](https://img.shields.io/badge/Reflex-Frontend-111111?style=flat-square)](https://reflex.dev/)
+[![License](https://img.shields.io/badge/License-MIT-2F855A?style=flat-square)](#license)
 
 <p align="center">
-  <em>A production-grade, end-to-end deep learning system that fuses retinal fundus imagery with clinical tabular data to predict cardiovascular disease — demonstrating the remarkable connection between the eye and the heart.</em>
+  EYE HEART CONNECTION is an end-to-end machine learning system that learns from left and right retinal fundus images together with patient age to predict ophthalmic findings and derive a cardiovascular risk proxy score. The repository includes data preparation, model training, evaluation, API serving, and a polished Reflex interface for interactive use.
 </p>
 
----
+<img src="mermaid-diagram-2026-03-30-191850.png" alt="System architecture" width="100%">
 
 </div>
 
-## 📌 Table of Contents
+## Overview
 
-- [🎯 Project Overview](#-project-overview)
-- [🧬 The Science](#-the-science)
-- [🏗️ System Architecture](#️-system-architecture)
-- [🤖 Model Architecture](#-model-architecture)
-- [🚀 Key Features](#-key-features)
-- [📂 Project Structure](#-project-structure)
-- [⚙️ Installation & Setup](#️-installation--setup)
-- [🎮 Quick Start](#-quick-start)
-- [📊 Training Pipeline](#-training-pipeline)
-- [🔍 Inference & Evaluation](#-inference--evaluation)
-- [🌐 API & Deployment](#-api--deployment)
-- [🧪 Testing](#-testing)
-- [🔧 Tech Stack](#-tech-stack)
-- [📈 Results & Performance](#-results--performance)
-- [👤 Author](#-author)
+The project is built around a multimodal PyTorch model that combines:
 
----
+- a shared image encoder applied to both left and right fundus photographs
+- a metadata branch for normalized age input
+- a fusion head that predicts eight ophthalmic labels
+- a post-processing layer that converts those probabilities into cardiovascular proxy scores and a final risk band
 
-## 🎯 Project Overview
+This codebase currently centers on:
 
-**EYE ❤️ HEART CONNECTION** is a full-stack, production-ready AI system that leverages the clinically established correlation between retinal microvascular abnormalities and cardiovascular disease. The system ingests **retinal fundus photographs** alongside **patient clinical data** (demographics, blood pressure, lab values) through a multimodal deep learning architecture to predict cardiovascular risk with high accuracy.
+- `FastAPI` for model serving
+- `Reflex` for the user-facing web interface
+- `PyTorch` and `torchvision` for model development
+- `Albumentations`, `OpenCV`, and `Pillow` for image preprocessing
+- `pytest` for test coverage across model, dataset, predictor, and API layers
 
-> **Why this matters:** The retina is the only location in the human body where microvasculature can be directly observed non-invasively. Changes in retinal blood vessels have been shown to correlate with cardiovascular conditions including hypertension, coronary artery disease, and stroke risk. This project transforms that clinical insight into an automated, scalable AI prediction system.
+## Key Capabilities
 
-### What Makes This Project Stand Out
+| Area | Current implementation |
+| --- | --- |
+| Inputs | Left fundus image, right fundus image, patient age |
+| Model | Shared bilateral image encoder plus metadata fusion network |
+| Vision backbone | `efficientnet_b4` by default, with `resnet50` also supported in code |
+| Prediction target | 8-label multilabel ophthalmic prediction |
+| Clinical summary | Weighted cardiovascular proxy scores and `low` / `medium` / `high` risk band |
+| Serving | `FastAPI` prediction API with schema validation |
+| Frontend | `Reflex` app with uploads, sample cases, charts, and clinical explanation text |
+| Experiment management | YAML-driven configuration for data, model, train, eval, inference, and API settings |
 
-| Aspect | Detail |
-|---|---|
-| **Multimodal Fusion** | Deep learning architecture that intelligently fuses vision (fundus images) and tabular (clinical) data |
-| **Production Pipeline** | End-to-end MLOps — from data ingestion to deployed API with Docker containerization |
-| **Config-Driven** | Hydra/YAML-based configuration system for reproducible experiments across environments |
-| **Multi-Interface** | REST API (FastAPI), Gradio UI, and Reflex web app — serving diverse user needs |
-| **Cloud Deployed** | Live deployment on Railway and Hugging Face Spaces |
-| **Test Coverage** | Comprehensive unit and integration test suite |
+## Prediction Targets
 
----
+The model predicts the following label set:
 
-## 🧬 The Science
+| Code | Meaning |
+| --- | --- |
+| `N` | Normal |
+| `D` | Diabetes |
+| `G` | Glaucoma |
+| `C` | Cataract |
+| `A` | Age-related macular degeneration |
+| `H` | Hypertension |
+| `M` | Myopia |
+| `O` | Other findings |
 
-### The Eye-Heart Connection
+The API and frontend then aggregate those probabilities into:
 
-Retinal fundus photography reveals critical biomarkers for cardiovascular health:
+- `hypertension_proxy`
+- `diabetes_proxy`
+- `atherosclerotic_proxy`
+- `overall_cv_proxy`
+- `risk_band`
 
-- 🩸 **Vessel caliber changes** — Associated with hypertension and atherosclerosis
-- 🔴 **Hemorrhages & microaneurysms** — Indicators of diabetic cardiovascular risk  
-- 🌀 **Arteriovenous nicking** — Linked to chronic hypertensive damage
-- 📐 **Vessel tortuosity** — Correlated with cardiovascular mortality
+## System Architecture
 
-This system learns these patterns automatically through deep learning, augmented by structured clinical data, to produce robust cardiovascular risk predictions.
+### Model path
 
----
+1. Left and right fundus images are preprocessed and resized.
+2. A shared image encoder extracts bilateral retinal features.
+3. Age is normalized using dataset statistics and passed through a metadata MLP.
+4. Image and metadata embeddings are concatenated.
+5. A fusion head produces eight multilabel logits.
+6. Sigmoid probabilities are transformed into cardiovascular proxy scores using `configs/cv_proxy.yaml`.
 
-## 🏗️ System Architecture
+### Application path
 
-<div align="center">
-  <img src="mermaid-diagram-2026-03-30-191850.png" alt="System Architecture Diagram" width="100%">
-</div>
+1. `api/main.py` loads the trained checkpoint on startup.
+2. `POST /predict` accepts bilateral images and age via multipart form data.
+3. `reflex_app/reflex_app.py` provides an interactive interface for uploads, sample cases, progress states, and result visualization.
 
----
+## Repository Layout
 
-## 🤖 Model Architecture
-
-The core of the system is a **multimodal fusion network** that combines two parallel encoding streams:
-
-### Image Encoder
-- **Backbone options:** ResNet-18/34/50, EfficientNet-B0/B1/B2, ConvNeXt-Tiny, and more
-- **Pretrained** on ImageNet with fine-tuning support (freeze/unfreeze backbone)
-- **Global average pooling** → feature projection → embedding vector
-
-### Tabular Encoder
-- **Multi-layer perceptron** (MLP) with batch normalization and dropout
-- Processes clinical features: demographics, vitals, lab values
-- **Configurable** layer sizes and activation functions
-
-### Fusion & Classification Head
-- **Concatenation** of image and tabular embeddings
-- **Fully connected classifier** with configurable hidden dimensions
-- **Multi-class classification** output for cardiovascular disease prediction
-- Supports **weighted loss** for class imbalance handling
-
-```
-Fundus Image ──→ [Image Encoder] ──→ Image Embedding (256-d) ──┐
-                                                                ├──→ [Fusion MLP] ──→ CVD Prediction
-Clinical Data ──→ [Tabular Encoder] ──→ Tabular Embedding (64-d) ┘
-```
-
----
-
-## 🚀 Key Features
-
-### 🧠 Deep Learning & ML
-- ✅ **Multimodal fusion architecture** (image + tabular data)
-- ✅ **Multiple CNN backbones** (ResNet, EfficientNet, ConvNeXt families)
-- ✅ **Transfer learning** with ImageNet pretrained weights
-- ✅ **Advanced augmentations** (RandAugment, TrivialAugment, geometric/photometric transforms)
-- ✅ **Class imbalance handling** (weighted cross-entropy loss)
-- ✅ **Learning rate scheduling** (CosineAnnealing, ReduceLROnPlateau, StepLR)
-- ✅ **Early stopping** with patience and checkpoint restoration
-- ✅ **Mixed precision training** (AMP/GradScaler) for efficiency
-- ✅ **K-Fold cross-validation** support for robust evaluation
-- ✅ **Data quality validation** pipeline
-
-### 🏭 Engineering & MLOps
-- ✅ **Hydra configuration management** — composable, multi-environment configs
-- ✅ **Docker containerization** for reproducible deployments
-- ✅ **FastAPI REST API** with request/response schemas (Pydantic)
-- ✅ **Gradio web interface** for interactive demos
-- ✅ **Reflex full-stack web app** for production UI
-- ✅ **Railway cloud deployment** with automated startup scripts
-- ✅ **Hugging Face Spaces deployment** support
-- ✅ **Comprehensive test suite** (pytest)
-- ✅ **Structured logging** and seed management for reproducibility
-
----
-
-## 📂 Project Structure
-
-```
+```text
 EYE_HEART_CONNECTION/
-├── 📁 api/                          # REST API & Web Interfaces
-│   ├── main.py                      # FastAPI application entry point
-│   ├── gradio_app.py                # Gradio interactive demo
-│   └── schemas.py                   # Pydantic request/response models
-├── 📁 configs/                      # Hydra Configuration Files
-│   ├── model.yaml                   # Model architecture config
-│   ├── data.yaml                    # Dataset & preprocessing config
-│   ├── train.yaml                   # Training hyperparameters
-│   ├── eval.yaml                    # Evaluation settings
-│   ├── inference.yaml               # Inference pipeline config
-│   ├── api.yaml                     # API server config
-│   ├── *_railway.yaml               # Railway deployment configs
-│   └── *_space.yaml                 # HF Spaces deployment configs
-├── 📁 datasets/                     # Data Processing & Loading
-│   ├── fundus_multimodal_dataset.py # Core PyTorch Dataset
-│   ├── data_module.py               # Lightning-style data module
-│   ├── build_patient_df.py          # Patient record builder
-│   ├── data_quality.py              # Data validation & cleaning
-│   └── transforms.py                # Image augmentation pipeline
-├── 📁 models/                       # Neural Network Architectures
-│   ├── image_encoder.py             # CNN backbone encoder
-│   └── multimodal_model.py          # Multimodal fusion model
-├── 📁 training/                     # Training Infrastructure
-│   ├── train.py                     # Training entry point
-│   └── trainer.py                   # Trainer class with full loop
-├── 📁 evaluation/                   # Model Evaluation
-│   ├── metrics.py                   # Metric computation (AUC, F1, etc.)
-│   └── run.py                       # Evaluation runner
-├── 📁 inference/                    # Prediction Pipeline
-│   ├── predict.py                   # Batch prediction script
-│   ├── predictor.py                 # Predictor class
-│   └── tabular/                     # Tabular-specific inference
-├── 📁 reflex_app/                   # Reflex Web Application
-│   └── reflex_app.py                # Production UI
-├── 📁 tests/                        # Test Suite
-│   ├── test_model.py                # Model architecture tests
-│   ├── test_predictor.py            # Inference pipeline tests
-│   ├── test_api.py                  # API endpoint tests
-│   ├── test_dataset.py              # Dataset & data tests
-│   ├── test_data_prep.py            # Data preparation tests
-│   └── conftest.py                  # Shared test fixtures
-├── 📁 utils/                        # Shared Utilities
-│   ├── config.py                    # Configuration loading
-│   ├── constants.py                 # Project-wide constants
-│   ├── device.py                    # Device management (CPU/GPU/MPS)
-│   ├── io.py                        # I/O helpers
-│   ├── logging.py                   # Structured logging
-│   └── seed.py                      # Reproducibility seed control
-├── 📁 notebooks/                    # Jupyter Notebooks
-│   ├── hackathon_showcase.ipynb     # Demo showcase notebook
-│   └── kaggle_train_eval.ipynb      # Kaggle training notebook
-├── 📁 data/                         # Data Storage
-│   └── splits/                      # Train/val/test splits
-├── Dockerfile                       # Container definition
-├── railway.json                     # Railway deployment config
-├── pyproject.toml                   # Project metadata & dependencies
-└── rxconfig.py                      # Reflex framework config
+|-- api/                  FastAPI app, request/response schemas, static API landing page
+|-- assets/               Frontend assets, sample images, and sample cases
+|-- configs/              YAML configuration for data, model, training, evaluation, inference, and API
+|-- datasets/             Patient dataframe building, dataset classes, transforms, and loaders
+|-- evaluation/           Metric computation and evaluation runner
+|-- experiments/          Training runs, checkpoints, metrics, reports, and latest artifact pointer
+|-- inference/            Predictor class and CLI inference entrypoint
+|-- models/               Image encoder and multimodal fusion model
+|-- reflex_app/           Reflex application UI
+|-- tests/                Pytest-based tests for API, datasets, model, and inference
+|-- training/             Training entrypoint and trainer implementation
+|-- utils/                Config loading, logging, device resolution, IO, constants, seeding
+|-- pyproject.toml        Package metadata and dependencies
+`-- rxconfig.py           Reflex app configuration
 ```
 
----
+## Technology Stack
 
-## ⚙️ Installation & Setup
+| Layer | Tools |
+| --- | --- |
+| Language | Python |
+| Deep learning | PyTorch, torchvision |
+| Image pipeline | Albumentations, OpenCV, Pillow |
+| Data and metrics | NumPy, Pandas, scikit-learn, Matplotlib |
+| API | FastAPI, Uvicorn, Pydantic, python-multipart |
+| Frontend | Reflex, HTTPX, Radix-based UI primitives, Recharts |
+| Experiment logging | TensorBoard, CSV metrics |
+| Testing | pytest |
+
+## Getting Started
 
 ### Prerequisites
 
-- **Python 3.10+**
-- **CUDA-capable GPU** (recommended) or CPU
-- **Git**
+- Python 3.10 or newer
+- A working virtual environment
+- A trained checkpoint for serving or inference, typically at `experiments/latest/best.pt`
+- Dataset files if you plan to train or evaluate locally
 
-### 1. Clone the Repository
+### Install
 
 ```bash
 git clone https://github.com/ayushsainime/EYE_HEART_CONNECTION.git
 cd EYE_HEART_CONNECTION
+
+python -m venv .venv
 ```
 
-### 2. Create Virtual Environment
+Activate the environment:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
 
 ```bash
-python -m venv venv
-
-# Linux / macOS
-source venv/bin/activate
-
-# Windows
-venv\Scripts\activate
+source .venv/bin/activate
 ```
 
-### 3. Install Dependencies
+Install the package with frontend and dev extras:
 
 ```bash
-pip install -e .
+pip install --upgrade pip
+pip install -e ".[frontend,dev]"
 ```
 
-<details>
-<summary>📦 Core Dependencies</summary>
+## Running the Stack
 
-| Package | Purpose |
-|---|---|
-| `torch` | Deep learning framework |
-| `torchvision` | Pretrained models & vision utilities |
-| `timm` | Additional model backbones |
-| `fastapi` | REST API framework |
-| `uvicorn` | ASGI server |
-| `gradio` | Interactive ML demo UI |
-| `reflex` | Full-stack Python web framework |
-| `hydra-core` | Configuration management |
-| `pandas` / `numpy` | Data manipulation |
-| `scikit-learn` | Metrics & preprocessing |
-| `albumentations` | Image augmentation |
-| `Pillow` | Image processing |
-| `pydantic` | Data validation & schemas |
-| `pytest` | Testing framework |
-
-</details>
-
-### 4. Docker Setup (Alternative)
+### 1. Start the API
 
 ```bash
-# Build the container
-docker build -t eye-heart-connection .
-
-# Run the container
-docker run -p 8000:8000 eye-heart-connection
+uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
----
+Default API configuration is loaded from `configs/api.yaml`, which points to:
 
-## 🎮 Quick Start
+- checkpoint: `experiments/latest/best.pt`
+- model config: `configs/model.yaml`
+- data config: `configs/data.yaml`
+- inference config: `configs/inference.yaml`
+- CV proxy config: `configs/cv_proxy.yaml`
 
-### Launch the API Server
+### 2. Start the Reflex frontend
+
+Point the UI to the API in a second terminal:
+
+```powershell
+$env:EHC_API_BASE="http://localhost:8000"
+reflex run
+```
 
 ```bash
-# Start FastAPI server
-python -m api.main
+export EHC_API_BASE="http://localhost:8000"
+reflex run
 ```
 
-The API will be available at `http://localhost:8000` with interactive docs at `/docs`.
+By default:
 
-### Launch the Gradio Demo
+- FastAPI serves predictions at `http://localhost:8000`
+- Reflex serves the web app at `http://localhost:3000`
+
+## Training Workflow
+
+### Prepare patient-level splits
 
 ```bash
-# Start Gradio web interface
-python -m api.gradio_app
+python -m datasets.build_patient_df --config configs/data.yaml
 ```
 
-### Run a Prediction
+The data pipeline expects:
 
-```python
-from inference.predictor import Predictor
+- a source CSV at `full_df.csv`
+- retinal image files under `preprocessed_images/`
 
-predictor = Predictor(config_path="configs/inference.yaml")
+It generates:
 
-result = predictor.predict(
-    fundus_image_path="path/to/fundus_image.png",
-    clinical_data={
-        "age": 55,
-        "sex": 1,
-        "blood_pressure_systolic": 140,
-        "blood_pressure_diastolic": 90,
-        # ... additional clinical features
-    }
-)
+- `data/processed/patients.csv`
+- `data/processed/metadata_stats.json`
+- `data/splits/train.csv`
+- `data/splits/val.csv`
+- `data/splits/test.csv`
 
-print(f"Cardiovascular risk prediction: {result}")
-```
-
----
-
-## 📊 Training Pipeline
-
-### Start Training
+### Train the model
 
 ```bash
-# Train with default configuration
-python -m training.train
-
-# Train with custom config override
-python -m training.train model.backbone=resnet50 training.lr=1e-4 training.epochs=50
+python -m training.train \
+  --config configs/train.yaml \
+  --data-config configs/data.yaml \
+  --model-config configs/model.yaml
 ```
 
-### Training Features
+The training entrypoint automatically prepares splits and metadata statistics if they do not already exist.
 
-| Feature | Description |
-|---|---|
-| **Backbone Selection** | Swap CNN architectures via config (`resnet18`, `efficientnet_b0`, `convnext_tiny`, etc.) |
-| **Mixed Precision** | Automatic AMP for faster training with lower memory |
-| **LR Scheduling** | Cosine annealing, plateau-based, or step-wise decay |
-| **Early Stopping** | Monitors validation loss with configurable patience |
-| **Checkpointing** | Saves best model weights automatically |
-| **Logging** | Structured logging with epoch-level metrics |
-| **Reproducibility** | Seeded RNG across Python, NumPy, and PyTorch |
+Training outputs are written under:
 
-### Training Configuration Example
+- `experiments/<run-name_timestamp>/metrics.csv`
+- `experiments/<run-name_timestamp>/tensorboard/`
+- `experiments/<run-name_timestamp>/checkpoints/`
+- `experiments/<run-name_timestamp>/reports/`
+- `experiments/latest/best.pt`
 
-```yaml
-# configs/train.yaml
-model:
-  backbone: resnet50
-  pretrained: true
-  freeze_backbone: false
-  tabular_input_dim: 15
-  fusion_hidden_dims: [128, 64]
-  num_classes: 5
+## Evaluation and Inference
 
-training:
-  epochs: 100
-  lr: 3.0e-4
-  weight_decay: 1.0e-4
-  batch_size: 32
-  scheduler: cosine
-  early_stopping_patience: 10
-```
-
----
-
-## 🔍 Inference & Evaluation
-
-### Evaluate a Trained Model
+### Evaluate a checkpoint
 
 ```bash
-# Run evaluation with metrics
-python -m evaluation.run
+python -m evaluation.run \
+  --ckpt experiments/latest/best.pt \
+  --config configs/eval.yaml \
+  --data-config configs/data.yaml \
+  --model-config configs/model.yaml
 ```
 
-### Batch Prediction
+Evaluation can optionally tune thresholds and save:
+
+- predictions CSV
+- key metrics JSON and CSV
+- full evaluation report JSON
+- tuned thresholds JSON
+
+### Run single-sample inference from the CLI
 
 ```bash
-# Run inference on a dataset
-python -m inference.predict
+python -m inference.predict \
+  --ckpt experiments/latest/best.pt \
+  --left assets/sample_left.jpg \
+  --right assets/sample_right.jpg \
+  --age 55
 ```
 
-### Supported Metrics
+## API Reference
 
-| Metric | Description |
-|---|---|
-| **Accuracy** | Overall classification accuracy |
-| **AUC-ROC** | Area Under the Receiver Operating Characteristic Curve |
-| **F1 Score** | Harmonic mean of precision and recall |
-| **Precision / Recall** | Per-class and weighted averages |
-| **Confusion Matrix** | Full classification breakdown |
-| **Classification Report** | Comprehensive per-class metrics |
+### Endpoints
 
----
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/` | Serves the static API landing page |
+| `GET` | `/health` | Basic health check |
+| `POST` | `/predict` | Run multimodal inference on bilateral fundus images and age |
+| `GET` | `/docs` | Interactive FastAPI schema docs |
 
-## 🌐 API & Deployment
+### Request format
 
-### FastAPI Endpoints
+`POST /predict` expects multipart form fields:
 
-The REST API exposes the following endpoints:
+- `left_image`
+- `right_image`
+- `age`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/predict` | Single prediction with image + clinical data |
-| `POST` | `/predict/batch` | Batch prediction on multiple samples |
-| `GET` | `/health` | Health check endpoint |
-| `GET` | `/docs` | Interactive Swagger UI documentation |
-
-### Example API Request
+### Example request
 
 ```bash
 curl -X POST "http://localhost:8000/predict" \
-  -F "fundus_image=@retinal_photo.png" \
-  -F "clinical_data={\"age\": 55, \"bp_systolic\": 140}"
+  -F "left_image=@assets/sample_left.jpg" \
+  -F "right_image=@assets/sample_right.jpg" \
+  -F "age=55"
 ```
 
-### Deployment Platforms
+### Example response shape
 
-| Platform | Status | Config |
-|---|---|---|
-| **Railway** | ✅ Live | `railway.json`, `start_railway_reflex.sh` |
-| **Hugging Face Spaces** | ✅ Ready | `configs/api_space.yaml` |
-| **Docker** | ✅ Ready | `Dockerfile` |
+```json
+{
+  "labels": {
+    "N": 0,
+    "D": 1,
+    "G": 0,
+    "C": 0,
+    "A": 0,
+    "H": 1,
+    "M": 0,
+    "O": 0
+  },
+  "probabilities": {
+    "N": 0.14,
+    "D": 0.81,
+    "G": 0.08,
+    "C": 0.12,
+    "A": 0.19,
+    "H": 0.76,
+    "M": 0.10,
+    "O": 0.07
+  },
+  "cv_summary": {
+    "hypertension_proxy": 0.67,
+    "diabetes_proxy": 0.80,
+    "atherosclerotic_proxy": 0.38,
+    "overall_cv_proxy": 0.64,
+    "risk_band": "medium"
+  }
+}
+```
 
----
+## Configuration Surface
 
-## 🧪 Testing
+| File | Purpose |
+| --- | --- |
+| `configs/data.yaml` | Dataset paths, image normalization, splits, loader settings, metadata bounds |
+| `configs/model.yaml` | Backbone choice, dropout settings, fusion head dimensions, freeze policy |
+| `configs/train.yaml` | Device strategy, epochs, optimizer, scheduler, checkpoint monitor |
+| `configs/eval.yaml` | Evaluation split, thresholds, prediction export settings |
+| `configs/inference.yaml` | Runtime device, image size, threshold path, metadata stats path |
+| `configs/api.yaml` | API host, port, checkpoint, and config file wiring |
+| `configs/cv_proxy.yaml` | Proxy score weights and risk-band thresholds |
 
-The project includes a comprehensive test suite built with **pytest**:
+## Frontend Notes
+
+The Reflex application includes:
+
+- bilateral image upload panels
+- sample-case loading from `assets/sample_cases/`
+- age slider and numeric input
+- progress and error states
+- probability visualization with bar charts
+- risk-band and cardiovascular proxy summaries
+- explanatory text derived from the top predicted ophthalmic conditions
+
+## Testing
+
+Run the test suite with:
 
 ```bash
-# Run all tests
-pytest tests/ -v
-
-# Run specific test modules
-pytest tests/test_model.py -v       # Model architecture tests
-pytest tests/test_predictor.py -v   # Inference pipeline tests
-pytest tests/test_api.py -v         # API endpoint tests
-pytest tests/test_dataset.py -v     # Dataset & data loading tests
-pytest tests/test_data_prep.py -v   # Data preparation tests
+python -m pytest -q
 ```
 
-### Test Coverage
+The current tests cover:
 
-| Module | Tests |
-|---|---|
-| `models/` | Architecture instantiation, forward pass, output shapes |
-| `inference/` | Predictor initialization, prediction pipeline |
-| `api/` | Endpoint routing, request validation, response format |
-| `datasets/` | Dataset creation, transform application, data loading |
-| `data_prep/` | DataFrame building, data quality checks |
+- API smoke behavior
+- predictor outputs
+- dataset construction and data preparation
+- model instantiation and forward pass expectations
 
----
+## License
 
-## 🔧 Tech Stack
-
-<p align="center">
-
-| Category | Technologies |
-|---|---|
-| **Language** | ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white) |
-| **Deep Learning** | ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white) ![torchvision](https://img.shields.io/badge/torchvision-EE4C2C?style=flat-square) ![timm](https://img.shields.io/badge/timm-EE4C2C?style=flat-square) |
-| **API** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) ![Uvicorn](https://img.shields.io/badge/Uvicorn-009688?style=flat-square) |
-| **UI** | ![Gradio](https://img.shields.io/badge/Gradio-FF7C00?style=flat-square) ![Reflex](https://img.shields.io/badge/Reflex-20232A?style=flat-square) |
-| **Config** | ![Hydra](https://img.shields.io/badge/Hydra-5B5EA6?style=flat-square) ![YAML](https://img.shields.io/badge/YAML-CB171E?style=flat-square) |
-| **Data** | ![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white) ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white) |
-| **Deployment** | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white) ![Railway](https://img.shields.io/badge/Railway-0B0D0E?style=flat-square) ![HuggingFace](https://img.shields.io/badge/🤗_HF-FFD21E?style=flat-square) |
-| **Testing** | ![pytest](https://img.shields.io/badge/pytest-0A9EDC?style=flat-square&logo=pytest&logoColor=white) |
-
-</p>
-
----
-
-## 📈 Results & Performance
-
-The multimodal fusion approach demonstrates the power of combining retinal imaging with clinical data:
-
-- 🎯 **Multimodal > Unimodal** — Fusion of image + tabular data outperforms either modality alone
-- 🏥 **Clinically Relevant** — Predictions align with established cardiovascular risk markers
-- ⚡ **Real-Time Inference** — Sub-second prediction latency via optimized API pipeline
-- 🔄 **Reproducible** — Seeded experiments with config-driven hyperparameter management
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-## 👤 Author
-
-### **Ayush Saini**
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ayush-saini-30a4a0372/)
-[![GitHub](https://img.shields.io/badge/GitHub-Follow-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/ayushsainime)
-
-*Building AI at the intersection of computer vision and healthcare.*
-
----
-
-⭐ **If you found this project insightful, please consider giving it a star!** ⭐
-
-</div>
+This project is distributed under the MIT license as declared in `pyproject.toml`.
