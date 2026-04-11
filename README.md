@@ -10,6 +10,9 @@
 [![Reflex](https://img.shields.io/badge/Reflex-Frontend-111111?style=flat-square)](https://reflex.dev/)
 [![License](https://img.shields.io/badge/License-MIT-2F855A?style=flat-square)](#license)
 
+[![Launch App](https://img.shields.io/badge/Launch-Live%20App-0F766E?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/spaces/ayushsainime/eye_heart_connect_reflex_app)
+[![Watch Demo](https://img.shields.io/badge/Watch-YouTube%20Demo-C1121F?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=Be5-Q3fMTNw)
+
 <p align="center">
   EYE HEART CONNECTION is an end-to-end machine learning system that learns from left and right retinal fundus images together with patient age to predict ophthalmic findings and derive a cardiovascular risk proxy score. The repository includes data preparation, model training, evaluation, API serving, and a polished Reflex interface for interactive use.
 </p>
