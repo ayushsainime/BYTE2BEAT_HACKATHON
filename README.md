@@ -124,16 +124,57 @@ EYE_HEART_CONNECTION/
 | Experiment logging | TensorBoard, CSV metrics |
 | Testing | pytest |
 
-## Getting Started
+## Quick Start
 
-### Prerequisites
+> **TL;DR** — Clone, install, and run both the API and frontend locally in under 5 minutes.
 
-- Python 3.10 or newer
-- A working virtual environment
-- A trained checkpoint for serving or inference, typically at `experiments/latest/best.pt`
-- Dataset files if you plan to train or evaluate locally
+```bash
+# 1. Clone the repo
+git clone https://github.com/ayushsainime/EYE_HEART_CONNECTION.git
+cd EYE_HEART_CONNECTION
 
-### Install
+# 2. Create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate          # Linux / macOS
+# .\.venv\Scripts\Activate.ps1    # Windows PowerShell
+
+# 3. Install dependencies
+pip install --upgrade pip
+pip install -e ".[frontend,dev]"
+
+# 4. Start the API (terminal 1)
+uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+# 5. Start the Reflex frontend (terminal 2)
+export EHC_API_BASE="http://localhost:8000"   # Linux / macOS
+# $env:EHC_API_BASE="http://localhost:8000"   # Windows PowerShell
+reflex run
+```
+
+Once both are running:
+
+| Service | URL |
+| --- | --- |
+| FastAPI predictions | `http://localhost:8000` |
+| Interactive API docs | `http://localhost:8000/docs` |
+| Reflex web app | `http://localhost:3000` |
+
+The pre-trained checkpoint and metadata shipped in `artifacts/` are loaded automatically by default, so you can start predicting right away.
+
+---
+
+## Prerequisites
+
+- **Python** 3.10 or newer
+- **Git** for cloning the repository
+- **Docker** (optional, for containerised deployment)
+- A **GPU** is recommended for training but not required for inference (`device: auto` falls back to CPU)
+
+---
+
+## Option 1 — Local Installation
+
+### Step 1: Clone and set up the environment
 
 ```bash
 git clone https://github.com/ayushsainime/EYE_HEART_CONNECTION.git
@@ -142,97 +183,129 @@ cd EYE_HEART_CONNECTION
 python -m venv .venv
 ```
 
-Activate the environment:
+Activate the virtual environment:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1    # Windows PowerShell
 ```
 
 ```bash
-source .venv/bin/activate
+source .venv/bin/activate       # Linux / macOS
 ```
 
-Install the package with frontend and dev extras:
+### Step 2: Install the package
 
 ```bash
 pip install --upgrade pip
 pip install -e ".[frontend,dev]"
 ```
 
-## Running the Stack
+| Extra | What it installs |
+| --- | --- |
+| `frontend` | Reflex (web UI framework) |
+| `dev` | pytest (test runner) |
 
-### 1. Start the API
+### Step 3: Start the API server
 
 ```bash
 uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
-Default API configuration is loaded from `configs/api.yaml`, which points to:
+The API loads configuration from `configs/api.yaml` which points to:
 
-- checkpoint: `experiments/latest/best.pt`
-- model config: `configs/model.yaml`
-- data config: `configs/data.yaml`
-- inference config: `configs/inference.yaml`
-- CV proxy config: `configs/cv_proxy.yaml`
+- checkpoint → `experiments/latest/best.pt` (or `artifacts/best.pt` for Docker)
+- model config → `configs/model.yaml`
+- data config → `configs/data.yaml`
+- inference config → `configs/inference.yaml`
+- CV proxy config → `configs/cv_proxy.yaml`
 
-### 2. Start the Reflex frontend
+### Step 4: Start the Reflex frontend
 
-Point the UI to the API in a second terminal:
+Open a **second terminal**, activate the same virtual environment, and run:
 
-```powershell
-$env:EHC_API_BASE="http://localhost:8000"
+```bash
+export EHC_API_BASE="http://localhost:8000"   # Linux / macOS
+# $env:EHC_API_BASE="http://localhost:8000"   # Windows PowerShell
 reflex run
 ```
 
-```bash
-export EHC_API_BASE="http://localhost:8000"
-reflex run
-```
+Open `http://localhost:3000` in your browser to use the interactive UI.
 
-By default:
+### Step 5: Run a prediction from the CLI
 
-- FastAPI serves predictions at `http://localhost:8000`
-- Reflex serves the web app at `http://localhost:3000`
-
-## Training Workflow
-
-### Prepare patient-level splits
+You can also test a single prediction without the UI:
 
 ```bash
-python -m datasets.build_patient_df --config configs/data.yaml
+python -m inference.predict \
+  --ckpt artifacts/best.pt \
+  --left assets/sample_left.jpg \
+  --right assets/sample_right.jpg \
+  --age 55
 ```
 
-The data pipeline expects:
+---
 
-- a source CSV at `full_df.csv`
-- retinal image files under `preprocessed_images/`
+## Option 2 — Docker Deployment
 
-It generates:
+The included `Dockerfile` bundles the FastAPI backend and Reflex frontend into a single container that exposes port **7860**.
 
-- `data/processed/patients.csv`
-- `data/processed/metadata_stats.json`
-- `data/splits/train.csv`
-- `data/splits/val.csv`
-- `data/splits/test.csv`
-
-### Train the model
+### Build the image
 
 ```bash
-python -m training.train \
-  --config configs/train.yaml \
-  --data-config configs/data.yaml \
-  --model-config configs/model.yaml
+docker build -t eye-heart-connection .
 ```
 
-The training entrypoint automatically prepares splits and metadata statistics if they do not already exist.
+### Run the container
 
-Training outputs are written under:
+```bash
+docker run -p 7860:7860 eye-heart-connection
+```
 
-- `experiments/<run-name_timestamp>/metrics.csv`
-- `experiments/<run-name_timestamp>/tensorboard/`
-- `experiments/<run-name_timestamp>/checkpoints/`
-- `experiments/<run-name_timestamp>/reports/`
-- `experiments/latest/best.pt`
+Once the container is up:
+
+| What | URL |
+| --- | --- |
+| Reflex web app | `http://localhost:7860` |
+| FastAPI predictions (internal) | `http://localhost:7860` (proxied through Reflex single-port mode) |
+| API docs | `http://localhost:7860/docs` |
+
+The startup script (`start_railway_reflex.sh`) automatically launches both the FastAPI backend on port 8000 and the Reflex frontend on port 7860 inside the container.
+
+### Docker Compose (optional)
+
+If you prefer Docker Compose, create a `docker-compose.yml`:
+
+```yaml
+version: "3.9"
+services:
+  app:
+    build: .
+    ports:
+      - "7860:7860"
+    environment:
+      - PORT=7860
+      - API_CONFIG_PATH=configs/api_railway.yaml
+    restart: unless-stopped
+```
+
+Then run:
+
+```bash
+docker compose up --build
+```
+
+---
+
+## Option 3 — Hugging Face Spaces
+
+The project ships with dedicated Space configs (`configs/api_space.yaml` and `configs/inference_space.yaml`).
+
+1. Create a new **Docker Space** on [huggingface.co/spaces](https://huggingface.co/spaces).
+2. Push this repository as the Space's source code.
+3. Set the environment variable `API_CONFIG_PATH=configs/api_space.yaml` if not using the default Dockerfile (which uses `api_railway.yaml`).
+4. The Space will build and serve the app on port **7860**.
+
+---
 
 ## Evaluation and Inference
 
@@ -257,11 +330,13 @@ Evaluation can optionally tune thresholds and save:
 
 ```bash
 python -m inference.predict \
-  --ckpt experiments/latest/best.pt \
+  --ckpt artifacts/best.pt \
   --left assets/sample_left.jpg \
   --right assets/sample_right.jpg \
   --age 55
 ```
+
+---
 
 ## API Reference
 
@@ -278,9 +353,9 @@ python -m inference.predict \
 
 `POST /predict` expects multipart form fields:
 
-- `left_image`
-- `right_image`
-- `age`
+- `left_image` — left eye fundus image file
+- `right_image` — right eye fundus image file
+- `age` — patient age (integer)
 
 ### Example request
 
@@ -291,29 +366,17 @@ curl -X POST "http://localhost:8000/predict" \
   -F "age=55"
 ```
 
-### Example response shape
+### Example response
 
 ```json
 {
   "labels": {
-    "N": 0,
-    "D": 1,
-    "G": 0,
-    "C": 0,
-    "A": 0,
-    "H": 1,
-    "M": 0,
-    "O": 0
+    "N": 0, "D": 1, "G": 0, "C": 0,
+    "A": 0, "H": 1, "M": 0, "O": 0
   },
   "probabilities": {
-    "N": 0.14,
-    "D": 0.81,
-    "G": 0.08,
-    "C": 0.12,
-    "A": 0.19,
-    "H": 0.76,
-    "M": 0.10,
-    "O": 0.07
+    "N": 0.14, "D": 0.81, "G": 0.08, "C": 0.12,
+    "A": 0.19, "H": 0.76, "M": 0.10, "O": 0.07
   },
   "cv_summary": {
     "hypertension_proxy": 0.67,
@@ -325,7 +388,9 @@ curl -X POST "http://localhost:8000/predict" \
 }
 ```
 
-## Configuration Surface
+---
+
+## Configuration Reference
 
 | File | Purpose |
 | --- | --- |
@@ -333,11 +398,17 @@ curl -X POST "http://localhost:8000/predict" \
 | `configs/model.yaml` | Backbone choice, dropout settings, fusion head dimensions, freeze policy |
 | `configs/train.yaml` | Device strategy, epochs, optimizer, scheduler, checkpoint monitor |
 | `configs/eval.yaml` | Evaluation split, thresholds, prediction export settings |
-| `configs/inference.yaml` | Runtime device, image size, threshold path, metadata stats path |
-| `configs/api.yaml` | API host, port, checkpoint, and config file wiring |
+| `configs/inference.yaml` | Runtime device, image size, threshold path, metadata stats path (local) |
+| `configs/inference_railway.yaml` | Inference config for Railway / Docker deployment |
+| `configs/inference_space.yaml` | Inference config for Hugging Face Spaces |
+| `configs/api.yaml` | API host, port, checkpoint, and config wiring (local) |
+| `configs/api_railway.yaml` | API config for Railway / Docker (uses `artifacts/best.pt`) |
+| `configs/api_space.yaml` | API config for Hugging Face Spaces (port 7860) |
 | `configs/cv_proxy.yaml` | Proxy score weights and risk-band thresholds |
 
-## Frontend Notes
+---
+
+## Frontend Features
 
 The Reflex application includes:
 
@@ -348,6 +419,8 @@ The Reflex application includes:
 - probability visualization with bar charts
 - risk-band and cardiovascular proxy summaries
 - explanatory text derived from the top predicted ophthalmic conditions
+
+---
 
 ## Testing
 
@@ -363,6 +436,8 @@ The current tests cover:
 - predictor outputs
 - dataset construction and data preparation
 - model instantiation and forward pass expectations
+
+---
 
 ## License
 
