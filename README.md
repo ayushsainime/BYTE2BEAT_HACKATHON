@@ -17,7 +17,7 @@
   EYE HEART CONNECTION is an end-to-end machine learning system that learns from left and right retinal fundus images together with patient age to predict ophthalmic findings and derive a cardiovascular risk proxy score. The repository includes data preparation, model training, evaluation, API serving, and a polished Reflex interface for interactive use.
 </p>
 
-<img src="mermaid-diagram-2026-03-30-191850.png" alt="System architecture" width="100%">
+<img src="https://huggingface.co/datasets/ayushsainime/eye_heart_connect_media/resolve/main/archi%20diagram.png" alt="System architecture" width="100%">
 
 </div>
 
